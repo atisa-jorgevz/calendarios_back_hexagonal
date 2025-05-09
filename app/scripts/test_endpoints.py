@@ -7,6 +7,7 @@ PROCESOS_URL = f"{BASE}/v1/procesos"
 HITOS_URL = f"{BASE}/v1/hitos"
 PHM_URL = f"{BASE}/v1/proceso-hitos"
 PLANTILLAS_URL = f"{BASE}/v1/plantillas"
+RELACIONES_URL = f"{BASE}/v1/plantilla-procesos"
 
 def test_crear_proceso():
     payload = {
@@ -107,6 +108,33 @@ def test_eliminar_procesos_hitos(id_):
     assert r.status_code == 200, f"Error al eliminar proceso-hito: {r.text}"
     print(f"✅ DELETE /proceso-hitos/{id_}: {r.json()}")
 
+def test_crear_relacion_plantilla_proceso(id_plantilla, id_proceso):
+    r = requests.post(RELACIONES_URL, json={"id_plantilla": id_plantilla, "id_proceso": id_proceso})
+    assert r.status_code == 200
+    print(f"✅ POST /plantilla-procesos: {r.json()}")
+    return r.json()["id"]
+
+def test_listar_relaciones():
+    r = requests.get(RELACIONES_URL)
+    assert r.status_code == 200
+    print(f"✅ GET /plantilla-procesos: {len(r.json())} relaciones")
+
+def test_listar_procesos_de_plantilla(id_plantilla):
+    r = requests.get(f"{RELACIONES_URL}/plantilla/{id_plantilla}")
+    assert r.status_code == 200
+    print(f"✅ GET /plantilla-procesos/plantilla/{id_plantilla}: {r.json()}")
+
+def test_eliminar_relacion(id_relacion):
+    r = requests.delete(f"{RELACIONES_URL}/{id_relacion}")
+    assert r.status_code == 200
+    print(f"✅ DELETE /plantilla-procesos/{id_relacion}: {r.json()}")
+
+def test_eliminar_por_plantilla(id_plantilla):
+    r = requests.delete(f"{RELACIONES_URL}/plantilla/{id_plantilla}")
+    assert r.status_code == 200, f"Error al eliminar relaciones por plantilla: {r.text}"
+    print(f"✅ DELETE /plantilla-procesos/plantilla/{id_plantilla}: {r.json()}")
+
+
 def main():
         # Asociar proceso con hito maestro
     proceso_id = test_crear_proceso()
@@ -125,6 +153,12 @@ def main():
     test_listar_plantillas()
     test_obtener_plantilla(id_plantilla)
     test_actualizar_plantilla(id_plantilla)
+    id_relacion = test_crear_relacion_plantilla_proceso(id_plantilla, proceso_id)
+    test_listar_relaciones()
+    test_listar_procesos_de_plantilla(id_plantilla)
+    test_eliminar_relacion(id_relacion)
+    id_relacion = test_crear_relacion_plantilla_proceso(id_plantilla, proceso_id)
+    test_eliminar_por_plantilla(id_plantilla)
     test_eliminar_plantilla(id_plantilla)
     print("💥 TEST DE PLANTILLAS FINALIZADO 💥")
 
