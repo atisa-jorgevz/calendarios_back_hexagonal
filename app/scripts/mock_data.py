@@ -6,6 +6,7 @@ from app.infrastructure.db.models import  ProcesoModel
 from app.infrastructure.db.models  import HitoModel
 from app.infrastructure.db.models import ProcesoHitoMaestroModel
 from app.infrastructure.db.models import PlantillaModel
+from app.infrastructure.db.models import PlantillaProcesoModel
 
 def poblar_datos_mock():
     db: Session = SessionLocal()
@@ -68,8 +69,30 @@ def poblar_plantillas_mock():
     db.close()
     print("✅ Plantillas de prueba insertadas correctamente")
 
+def poblar_plantillas_procesos_mock():
+    db: Session = SessionLocal()
+
+    # Obtener IDs de plantilla y procesos para las relaciones
+    plantilla = db.query(PlantillaModel).first()
+    procesos = db.query(ProcesoModel).limit(2).all()
+
+    if not plantilla or not procesos:
+        print("❌ No hay plantillas o procesos para relacionar")
+        db.close()
+        return
+
+    relaciones = [
+        PlantillaProcesoModel(id_plantilla=plantilla.id, id_proceso=procesos[0].id),
+        PlantillaProcesoModel(id_plantilla=plantilla.id, id_proceso=procesos[1].id)
+    ]
+    db.add_all(relaciones)
+    db.commit()
+    db.close()
+    print("✅ Relaciones Plantilla-Proceso insertadas")
+
 if __name__ == "__main__":
     poblar_datos_mock()
     poblar_proceso_hito_maestro_mock()
     poblar_plantillas_mock()
+    poblar_plantillas_procesos_mock()
     print("✅ Datos de prueba insertados correctamente")
