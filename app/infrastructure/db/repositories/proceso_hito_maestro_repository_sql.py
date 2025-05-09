@@ -15,3 +15,14 @@ class ProcesoHitoMaestroRepositorySQL(ProcesoHitoMaestroRepository):
 
     def listar(self):
         return self.session.query(ProcesoHitoMaestroModel).all()
+
+    def obtener_por_id(self, id: int):
+        return self.session.query(ProcesoHitoMaestroModel).filter_by(id=id).first()
+    
+    def eliminar(self, id: int):
+        relacion = self.obtener_por_id(id)
+        if not relacion:
+            return None
+        self.session.delete(relacion)
+        self.session.commit()
+        return True

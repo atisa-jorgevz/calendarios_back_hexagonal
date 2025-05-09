@@ -5,6 +5,7 @@ from app.infrastructure.db.database import SessionLocal
 from app.infrastructure.db.models import  ProcesoModel
 from app.infrastructure.db.models  import HitoModel
 from app.infrastructure.db.models import ProcesoHitoMaestroModel
+from app.infrastructure.db.models import PlantillaModel
 
 def poblar_datos_mock():
     db: Session = SessionLocal()
@@ -53,6 +54,22 @@ def poblar_proceso_hito_maestro_mock():
     db.close()
     print("✅ Relación Proceso-Hito insertada")
 
+def poblar_plantillas_mock():
+    db: Session = SessionLocal()
+
+    plantillas = [
+        PlantillaModel(nombre="Plantilla Contable", descripcion="Para procesos de contabilidad"),
+        PlantillaModel(nombre="Plantilla Fiscal", descripcion="Para procesos fiscales"),
+        PlantillaModel(nombre="Plantilla General", descripcion="Uso general en clientes")
+    ]
+
+    db.add_all(plantillas)
+    db.commit()
+    db.close()
+    print("✅ Plantillas de prueba insertadas correctamente")
+
 if __name__ == "__main__":
     poblar_datos_mock()
     poblar_proceso_hito_maestro_mock()
+    poblar_plantillas_mock()
+    print("✅ Datos de prueba insertados correctamente")

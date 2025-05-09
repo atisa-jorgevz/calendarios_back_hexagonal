@@ -1,8 +1,9 @@
-from fastapi import APIRouter, Depends
+from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 from app.infrastructure.db.database import SessionLocal
 from app.infrastructure.db.repositories.proceso_hito_maestro_repository_sql import ProcesoHitoMaestroRepositorySQL
 from app.application.use_cases.proceso_hito_maestro.crear_relacion import crear_relacion
+from app.application.use_cases.proceso_hito_maestro.eliminar_relacion import eliminar_relacion
 from app.application.use_cases.proceso_hito_maestro.listar_relaciones import listar_relaciones
 
 router = APIRouter()
@@ -24,3 +25,11 @@ def crear(data: dict, repo = Depends(get_repo)):
 @router.get("/proceso-hitos")
 def listar(repo = Depends(get_repo)):
     return listar_relaciones(repo)
+
+# Eliminar un proceso
+@router.delete("/proceso-hitos/{id}")
+def delete(id: int, repo = Depends(get_repo)):
+    resultado = eliminar_relacion(id, repo)
+    if not resultado:
+        raise HTTPException(status_code=404, detail="relacion no encontrada")
+    return {"mensaje": "relacion eliminada"}

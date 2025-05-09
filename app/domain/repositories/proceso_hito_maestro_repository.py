@@ -10,3 +10,13 @@ class ProcesoHitoMaestroRepository(ABC):
     @abstractmethod
     def listar(self):
         pass
+
+    @abstractmethod
+    def eliminar(self):
+        pass
+
+    @abstractmethod
+    def obtener_por_id(self):
+        pass
+
+    

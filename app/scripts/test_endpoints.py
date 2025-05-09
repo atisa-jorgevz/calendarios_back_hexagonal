@@ -5,6 +5,8 @@ import requests
 BASE = "http://localhost:8000"
 PROCESOS_URL = f"{BASE}/v1/procesos"
 HITOS_URL = f"{BASE}/v1/hitos"
+PHM_URL = f"{BASE}/v1/proceso-hitos"
+PLANTILLAS_URL = f"{BASE}/v1/plantillas"
 
 def test_crear_proceso():
     payload = {
@@ -55,26 +57,76 @@ def test_eliminar(url, entidad, id_):
     assert r.status_code == 200, f"Error al eliminar {entidad}: {r.text}"
     print(f"✅ DELETE /{entidad}/{id_}: {r.json()}")
 
-def main():
-        # Asociar proceso con hito maestro
-    proceso_id = test_crear_proceso()
-    hito_id = test_crear_hito()
+def test_crear_plantilla():
+    payload = {
+        "nombre": "Plantilla Test API",
+        "descripcion": "Plantilla generada desde test"
+    }
+    r = requests.post(PLANTILLAS_URL, json=payload)
+    assert r.status_code == 200, f"Error al crear plantilla: {r.text}"
+    data = r.json()
+    print(f"✅ POST /plantillas: {data}")
+    return data["id"]
 
-    PHM_URL = f"{BASE}/v1/proceso-hitos"
+def test_listar_plantillas():
+    r = requests.get(PLANTILLAS_URL)
+    assert r.status_code == 200, f"Error al listar plantillas: {r.text}"
+    print(f"✅ GET /plantillas: {len(r.json())} encontradas")
+
+def test_obtener_plantilla(id_):
+    r = requests.get(f"{PLANTILLAS_URL}/{id_}")
+    assert r.status_code == 200, f"Plantilla no encontrada: {r.text}"
+    print(f"✅ GET /plantillas/{id_}: {r.json()}")
+
+def test_actualizar_plantilla(id_):
+    payload = {
+        "nombre": "Plantilla Test Modificada",
+        "descripcion": "Descripción modificada"
+    }
+    r = requests.put(f"{PLANTILLAS_URL}/{id_}", json=payload)
+    assert r.status_code == 200, f"Error al actualizar plantilla: {r.text}"
+    print(f"✅ PUT /plantillas/{id_}: {r.json()}")
+
+def test_eliminar_plantilla(id_):
+    r = requests.delete(f"{PLANTILLAS_URL}/{id_}")
+    assert r.status_code == 200, f"Error al eliminar plantilla: {r.text}"
+    print(f"✅ DELETE /plantillas/{id_}: {r.json()}")
+
+def test_asociar_proceso_hito(proceso_id, hito_id):
     payload = {
         "id_proceso": proceso_id,
         "id_hito": hito_id
     }
     r = requests.post(PHM_URL, json=payload)
     assert r.status_code == 200, f"Error al asociar proceso-hito: {r.text}"
-    phm_id = r.json()["id"]
-    print(f"✅ POST /proceso-hitos: {r.json()}")
+    data = r.json()    
+    print(f"✅ POST /proceso-hitos: {data}")
+    return data["id"]
+def test_eliminar_procesos_hitos(id_):
+    r = requests.delete(f"{PHM_URL}/{id_}")
+    assert r.status_code == 200, f"Error al eliminar proceso-hito: {r.text}"
+    print(f"✅ DELETE /proceso-hitos/{id_}: {r.json()}")
+
+def main():
+        # Asociar proceso con hito maestro
+    proceso_id = test_crear_proceso()
+    hito_id = test_crear_hito()
+
+    id_relacion_proceso_hito = test_asociar_proceso_hito(proceso_id, hito_id)
 
     # Listar relaciones
     test_listar(PHM_URL, "proceso-hitos")
 
     # Eliminar relación
-    test_eliminar(PHM_URL, "proceso-hitos", phm_id)
+    test_eliminar_procesos_hitos(id_relacion_proceso_hito)
+
+
+    id_plantilla = test_crear_plantilla()
+    test_listar_plantillas()
+    test_obtener_plantilla(id_plantilla)
+    test_actualizar_plantilla(id_plantilla)
+    test_eliminar_plantilla(id_plantilla)
+    print("💥 TEST DE PLANTILLAS FINALIZADO 💥")
 
 
     
