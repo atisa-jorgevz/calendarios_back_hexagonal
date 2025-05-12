@@ -7,6 +7,65 @@ from app.infrastructure.db.models  import HitoModel
 from app.infrastructure.db.models import ProcesoHitoMaestroModel
 from app.infrastructure.db.models import PlantillaModel
 from app.infrastructure.db.models import PlantillaProcesoModel
+from app.infrastructure.db.models import ClienteProcesoModel
+from app.infrastructure.db.models import ClienteProcesoHitoModel
+
+
+def poblar_cliente_proceso_mock():
+    db: Session = SessionLocal()
+
+    proceso = db.query(ProcesoModel).first()
+    if not proceso:
+        print("❌ No hay procesos disponibles, ejecuta primero el mock de procesos.")
+        db.close()
+        return
+
+    cliente_procesos = [
+        ClienteProcesoModel(
+            idcliente="2",
+            id_proceso=proceso.id,
+            fecha_inicio="2023-01-01",
+            fecha_fin="2023-12-31",
+            mes=1,
+            anio=2023
+        ),
+        ClienteProcesoModel(
+            idcliente="1",
+            id_proceso=proceso.id,
+            fecha_inicio="2023-01-01",
+            fecha_fin="2023-12-31",
+            mes=2,
+            anio=2023
+        )
+    ]
+
+    db.add_all(cliente_procesos)
+    db.commit()
+    db.close()
+    print("✅ ClienteProceso de prueba insertado correctamente")
+
+def poblar_cliente_proceso_hito_mock():
+    db: Session = SessionLocal()
+
+    cliente_proceso = db.query(ClienteProcesoModel).first()
+    hito_maestro = db.query(ProcesoHitoMaestroModel).first()
+
+    if not cliente_proceso or not hito_maestro:
+        print("❌ No hay cliente_proceso o proceso_hito_maestro disponibles para asociar.")
+        db.close()
+        return
+
+    mock = ClienteProcesoHitoModel(
+        cliente_proceso_id=cliente_proceso.id,
+        hito_id=hito_maestro.id,
+        estado="pendiente",
+        fecha_estado="2025-05-12"
+    )
+
+    db.add(mock)
+    db.commit()
+    db.close()
+    print("✅ Mock de ClienteProcesoHito insertado correctamente.")
 
 def poblar_datos_mock():
     db: Session = SessionLocal()
@@ -82,8 +141,8 @@ def poblar_plantillas_procesos_mock():
         return
 
     relaciones = [
-        PlantillaProcesoModel(id_plantilla=plantilla.id, id_proceso=procesos[0].id),
-        PlantillaProcesoModel(id_plantilla=plantilla.id, id_proceso=procesos[1].id)
+        PlantillaProcesoModel(plantilla_id=plantilla.id, proceso_id=procesos[0].id),
+        PlantillaProcesoModel(plantilla_id=plantilla.id, proceso_id=procesos[1].id)
     ]
     db.add_all(relaciones)
     db.commit()
@@ -95,4 +154,6 @@ if __name__ == "__main__":
     poblar_proceso_hito_maestro_mock()
     poblar_plantillas_mock()
     poblar_plantillas_procesos_mock()
+    poblar_cliente_proceso_mock()
+    poblar_cliente_proceso_hito_mock()
     print("✅ Datos de prueba insertados correctamente")

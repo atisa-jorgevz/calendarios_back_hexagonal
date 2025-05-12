@@ -1,9 +1,9 @@
-import app.domain.entities.plantilla_proceso as PlantillaProceso
-import app.domain.repositories.plantilla_proceso_repository as PlantillaProcesoRepository
+from app.domain.entities.plantilla_proceso import PlantillaProceso
+from  app.domain.repositories.plantilla_proceso_repository import PlantillaProcesoRepository
 
 def crear_relacion(data: dict, repo: PlantillaProcesoRepository):
     relacion = PlantillaProceso(
-        id_proceso=data["id_proceso"],
-        id_hito=data["id_hito"]
+        proceso_id=data["proceso_id"],
+        plantilla_id=data["plantilla_id"]
     )
     return repo.guardar(relacion)

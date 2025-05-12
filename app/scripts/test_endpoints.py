@@ -8,6 +8,31 @@ HITOS_URL = f"{BASE}/v1/hitos"
 PHM_URL = f"{BASE}/v1/proceso-hitos"
 PLANTILLAS_URL = f"{BASE}/v1/plantillas"
 RELACIONES_URL = f"{BASE}/v1/plantilla-procesos"
+CLIENTES_URL = f"{BASE}/v1/clientes"
+CLIENTE_PROCESO_URL = f"{BASE}/v1/cliente-procesos"
+CLIENTE_PROCESO_HITO_URL = f"{BASE}/v1/cliente-proceso-hitos"
+
+def test_listar_cliente_procesos():
+    r = requests.get(CLIENTE_PROCESO_URL)
+    assert r.status_code == 200, f"❌ Error al listar cliente_procesos: {r.text}"
+    print(f"✅ GET /cliente-proceso → {len(r.json())} encontrados")
+
+def test_obtener_cliente_proceso_por_id(id_):
+    r = requests.get(f"{CLIENTE_PROCESO_URL}/{id_}")
+    assert r.status_code == 200, f"❌ cliente_proceso {id_} no encontrado: {r.text}"
+    print(f"✅ GET /cliente-proceso/{id_} → {r.json()}")
+
+def test_listar_cliente_proceso_hitos():
+    r = requests.get(CLIENTE_PROCESO_HITO_URL)
+    assert r.status_code == 200, f"❌ Error al listar cliente_proceso_hito: {r.text}"
+    print(f"✅ GET /cliente-proceso-hito → {len(r.json())} encontrados")
+
+def test_obtener_cliente_proceso_hito_por_id(id_):
+    r = requests.get(f"{CLIENTE_PROCESO_HITO_URL}/{id_}")
+    assert r.status_code == 200, f"❌ cliente_proceso_hito {id_} no encontrado: {r.text}"
+    print(f"✅ GET /cliente-proceso-hito/{id_} → {r.json()}")
+
+
 
 def test_crear_proceso():
     payload = {
@@ -109,7 +134,7 @@ def test_eliminar_procesos_hitos(id_):
     print(f"✅ DELETE /proceso-hitos/{id_}: {r.json()}")
 
 def test_crear_relacion_plantilla_proceso(id_plantilla, id_proceso):
-    r = requests.post(RELACIONES_URL, json={"id_plantilla": id_plantilla, "id_proceso": id_proceso})
+    r = requests.post(RELACIONES_URL, json={"plantilla_id": id_plantilla, "proceso_id": id_proceso})
     assert r.status_code == 200
     print(f"✅ POST /plantilla-procesos: {r.json()}")
     return r.json()["id"]
@@ -134,8 +159,32 @@ def test_eliminar_por_plantilla(id_plantilla):
     assert r.status_code == 200, f"Error al eliminar relaciones por plantilla: {r.text}"
     print(f"✅ DELETE /plantilla-procesos/plantilla/{id_plantilla}: {r.json()}")
 
+def test_listar_clientes():
+    r = requests.get(CLIENTES_URL)
+    assert r.status_code == 200, f"Error al listar clientes: {r.text}"
+    print(f"✅ GET /clientes: {len(r.json())} encontrados")
+
+def test_buscar_por_nombre(nombre):
+    r = requests.get(f"{CLIENTES_URL}/nombre/{nombre}")
+    if r.status_code == 404:
+        print(f"❌ No se encontraron clientes con nombre: {nombre}")
+    else:
+        print(f"✅ GET /clientes/nombre/{nombre}: {len(r.json())} encontrados")
+
+def test_buscar_por_cif(cif):
+    r = requests.get(f"{CLIENTES_URL}/cif/{cif}")
+    if r.status_code == 404:
+        print(f"❌ Cliente con CIF {cif} no encontrado")
+    else:
+        print(f"✅ GET /clientes/cif/{cif}: {r.json()}")
+
 
 def main():
+
+    test_listar_clientes()
+    test_buscar_por_nombre("KIKO")     # Usa un nombre real que sepas que existe
+    test_buscar_por_cif("B78491073")     # Cambia por un CIF real para que funcione
+
         # Asociar proceso con hito maestro
     proceso_id = test_crear_proceso()
     hito_id = test_crear_hito()
@@ -161,9 +210,13 @@ def main():
     test_eliminar_por_plantilla(id_plantilla)
     test_eliminar_plantilla(id_plantilla)
     print("💥 TEST DE PLANTILLAS FINALIZADO 💥")
+    # Cliente Proceso
+    test_listar_cliente_procesos()
+    test_obtener_cliente_proceso_por_id(6)  # Ajusta el ID si lo necesitas
 
-
-    
+    # Cliente Proceso Hito
+    test_listar_cliente_proceso_hitos()
+    test_obtener_cliente_proceso_hito_por_id(7)  # Ajusta el ID si lo necesitas
 
     print("\n💥 TODOS LOS TESTS FINALIZADOS CON ÉXITO 💥")
 

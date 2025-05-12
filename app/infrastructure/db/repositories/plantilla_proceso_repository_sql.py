@@ -29,11 +29,11 @@ class PlantillaProcesoRepositorySQL(PlantillaProcesoRepository):
     def obtener_por_id(self, id: int):
         return self.session.query(PlantillaProcesoModel).filter_by(id=id).first()
 
-    def listar_procesos_por_plantilla(self, id_plantilla: int):
-        return self.session.query(PlantillaProcesoModel).filter_by(id_plantilla=id_plantilla).all()
+    def listar_procesos_por_plantilla(self, plantilla_id: int):
+        return self.session.query(PlantillaProcesoModel).filter_by(plantilla_id=plantilla_id).all()
     
-    def eliminar_por_plantilla(self, id_plantilla: int):
-        relaciones = self.session.query(PlantillaProcesoModel).filter_by(id_plantilla=id_plantilla).all()
+    def eliminar_por_plantilla(self, plantilla_id: int):
+        relaciones = self.session.query(PlantillaProcesoModel).filter_by(plantilla_id=plantilla_id).all()
         if relaciones:
             for r in relaciones:
                 self.session.delete(r)

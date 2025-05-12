@@ -1,5 +1,5 @@
 class PlantillaProceso:
-    def __init__(self, id=None, id_plantilla=None, id_proceso=None):
+    def __init__(self, id=None, plantilla_id=None, proceso_id=None):
         self.id = id
-        self.id_plantilla = id_plantilla
-        self.id_proceso = id_proceso
+        self.plantilla_id = plantilla_id
+        self.proceso_id = proceso_id

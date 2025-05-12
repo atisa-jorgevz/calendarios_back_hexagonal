@@ -16,7 +16,7 @@ class PlantillaProcesoRepository(ABC):
         pass
 
     @abstractmethod
-    def eliminar_relacion_por_plantilla(self):
+    def eliminar_por_plantilla(self):
         pass
 
     @abstractmethod
