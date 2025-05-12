@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException,Query
 from sqlalchemy.orm import Session
 from app.infrastructure.db.database import SessionLocal
 from app.infrastructure.db.repositories.proceso_repository_sql import ProcesoRepositorySQL
@@ -25,6 +25,18 @@ def get_repo(db: Session = Depends(get_db)):
 @router.post("/procesos")
 def crear(data: dict, repo = Depends(get_repo)):
     return crear_proceso(data, repo)
+
+@router.get("/procesos/mis-clientes-optimo")
+def mis_procesos_optimo(
+    email: str = Query(..., description="Email del empleado que hace la consulta"),
+    repo=  Depends(get_repo)
+):
+    """
+    Devuelve en UNA sola llamada a BD todos los procesos (con sus hitos)
+    de los clientes asociados al email de empleado que le pases como query param.
+    Ejemplo: GET /procesos/mis-clientes-optimo?email=mi@empleado.com
+    """
+    return repo.listar_procesos_y_hitos_por_empleado(email)
 
 # Listar todos los procesos
 @router.get("/procesos")
@@ -57,3 +69,4 @@ def delete_proceso(id: int, repo = Depends(get_repo)):
     if not resultado:
         raise HTTPException(status_code=404, detail="Proceso no encontrado")
     return {"mensaje": "Proceso eliminado"}
+

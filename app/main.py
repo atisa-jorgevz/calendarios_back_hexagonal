@@ -10,10 +10,10 @@ from app.infrastructure.api.v1.endpoints import cliente_proceso_hito
 
 app = FastAPI()
 
-app.include_router(proceso.router, prefix="/v1")
-app.include_router(hito.router, prefix="/v1")
-app.include_router(proceso_hito_maestro.router, prefix="/v1")
-app.include_router(plantilla.router, prefix="/v1")
+app.include_router(proceso.router, prefix="/v1", tags=["Proceso"])
+app.include_router(hito.router, prefix="/v1", tags=["Hito"])
+app.include_router(proceso_hito_maestro.router, prefix="/v1", tags=["ProcesoHitoMaestro"])
+app.include_router(plantilla.router, prefix="/v1", tags=["Plantilla"])
 app.include_router(plantilla_proceso.router, prefix="/v1", tags=["PlantillaProceso"])
 app.include_router(cliente.router, prefix="/v1", tags=["Cliente"])
 app.include_router(cliente_proceso.router, prefix="/v1", tags=["ClienteProceso"])
