@@ -1,21 +1,26 @@
-from fastapi import FastAPI
-from app.infrastructure.api.v1.endpoints import proceso
-from app.infrastructure.api.v1.endpoints import hito
-from app.infrastructure.api.v1.endpoints import proceso_hito_maestro
-from app.infrastructure.api.v1.endpoints import plantilla
-from app.infrastructure.api.v1.endpoints import plantilla_proceso
-from app.infrastructure.api.v1.endpoints import cliente
-from app.infrastructure.api.v1.endpoints import cliente_proceso
-from app.infrastructure.api.v1.endpoints import cliente_proceso_hito
+from fastapi import FastAPI, Depends
+from app.infrastructure.api.v1.endpoints import (
+    plantilla,
+    proceso,
+    hito,
+    cliente,
+    cliente_proceso,
+    cliente_proceso_hito,
+    plantilla_proceso,
+    proceso_hito_maestro,
+    admin_api_cliente
+)
+from app.infrastructure.api.security import verificar_api_key
 
-app = FastAPI()
+app = FastAPI(title="API de Procesos de clientes", version="1.0.0")
 
-app.include_router(proceso.router, prefix="/v1", tags=["Proceso"])
-app.include_router(hito.router, prefix="/v1", tags=["Hito"])
-app.include_router(proceso_hito_maestro.router, prefix="/v1", tags=["ProcesoHitoMaestro"])
-app.include_router(plantilla.router, prefix="/v1", tags=["Plantilla"])
-app.include_router(plantilla_proceso.router, prefix="/v1", tags=["PlantillaProceso"])
-app.include_router(cliente.router, prefix="/v1", tags=["Cliente"])
-app.include_router(cliente_proceso.router, prefix="/v1", tags=["ClienteProceso"])
-app.include_router(cliente_proceso_hito.router, prefix="/v1", tags=["ClienteProcesoHito"])
-
+# Incluir routers con verificación de API key
+app.include_router(plantilla.router, dependencies=[Depends(verificar_api_key)])
+app.include_router(proceso.router, dependencies=[Depends(verificar_api_key)])
+app.include_router(hito.router, dependencies=[Depends(verificar_api_key)])
+app.include_router(cliente.router, dependencies=[Depends(verificar_api_key)])
+app.include_router(cliente_proceso.router, dependencies=[Depends(verificar_api_key)])
+app.include_router(cliente_proceso_hito.router, dependencies=[Depends(verificar_api_key)])
+app.include_router(plantilla_proceso.router, dependencies=[Depends(verificar_api_key)])
+app.include_router(proceso_hito_maestro.router, dependencies=[Depends(verificar_api_key)])
+app.include_router(admin_api_cliente.router)

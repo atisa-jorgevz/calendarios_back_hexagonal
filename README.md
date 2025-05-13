@@ -133,3 +133,69 @@ ClienteProceso ⟶ ClienteProcesoHito ⟶ Hito (vía ProcesoHitoMaestro)
 - Fácil testeo, mantenimiento y escalabilidad
 
 ---
+## 🔐 Autenticación por API Key
+
+### 1. Autenticación de clientes API (`x-api-key`)
+
+Todas las rutas principales de esta API están protegidas por autenticación mediante una clave de API personalizada por cliente.
+
+#### Cómo usarla
+
+Debes enviar el header:
+
+```
+x-api-key: <clave_del_cliente>
+```
+
+Ejemplo con `curl`:
+
+```bash
+curl -X GET http://localhost:8000/procesos \
+  -H "x-api-key: clave_erp_456"
+```
+
+#### Qué ocurre si...
+
+| Situación                     | Resultado                   |
+|------------------------------|-----------------------------|
+| No se envía la clave         | 422 Unprocessable Entity    |
+| Clave inválida o desactivada | 401 Unauthorized            |
+| Clave válida                 | ✅ Acceso concedido         |
+
+---
+
+### 2. Gestión administrativa de API Keys (`x-admin-key`)
+
+La administración de claves API se realiza a través de endpoints especiales, protegidos por una clave maestra separada (`x-admin-key`).
+
+#### Header requerido
+
+```
+x-admin-key: <clave_administrador>
+```
+
+#### Endpoints disponibles
+
+| Método | Ruta                          | Acción                                      |
+|--------|-------------------------------|---------------------------------------------|
+| GET    | `/admin/api-clientes`         | Lista todos los clientes API                |
+| POST   | `/admin/api-clientes`         | Crea un nuevo cliente y genera su API Key   |
+| PUT    | `/admin/api-clientes/{id}`    | Activa o desactiva una clave existente      |
+
+#### Ejemplo de creación con `curl`
+
+```bash
+curl -X POST http://localhost:8000/admin/api-clientes \
+  -H "Content-Type: application/json" \
+  -H "x-admin-key: clave_admin_ultra_secreta" \
+  -d '{"nombre_cliente": "PowerBI"}'
+```
+
+---
+
+## 🧠 Consideraciones de Seguridad
+
+- Las claves API son únicas por cliente.
+- Se pueden revocar sin eliminar al cliente.
+- Es posible extender con límites de uso, auditoría, IPs, etc.
+
