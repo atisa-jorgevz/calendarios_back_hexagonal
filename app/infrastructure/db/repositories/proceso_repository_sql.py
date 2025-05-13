@@ -3,38 +3,9 @@ from app.domain.entities.proceso import Proceso
 from sqlalchemy import text
 from collections import OrderedDict
 from app.infrastructure.db.models import ProcesoModel
+from app.infrastructure.db.compartido.mis_clientes_cte import MIS_CLIENTES_CTE
 
-SQL_TODO_EN_UNO = """ 
-WITH mis_clientes AS (
-  SELECT CS.id AS id_cliente
-    FROM [BI DW RRHH DEV].dbo.Persona P
-    JOIN [BI DW RRHH DEV].dbo.HDW_Cecos C ON P.Numeross = C.Numeross
-    JOIN [ATISA_Input].dbo.SubDePar S ON LEFT(C.CODIDEPAR,29)=S.codidepar
-    JOIN [ATISA_Input].dbo.clienteSubdepar CS ON S.codSubDePar=CS.codSubDePar
-   WHERE P.email = :email AND C.FECHAFIN IS NULL
-
-  UNION
-
-  SELECT DISTINCT CACO.IDCLIENTE AS id_cliente
-    FROM [BI DW RRHH DEV].dbo.Persona P
-    JOIN [BI DW RRHH DEV].dbo.HDW_Cecos C ON P.Numeross=C.Numeross
-    JOIN [ATISA_Input].dbo.SubDePar S ON LEFT(C.CODIDEPAR,29)=S.codidepar
-    JOIN [ATISA_Input].dbo.ArtSubdepar ASU ON S.codSubDePar=ASU.codSubDePar
-    JOIN [ATISA_Input].dbo.cuercontra CUCO ON ASU.codart=CUCO.idArticulo
-    JOIN [ATISA_Input].dbo.cabecontra CACO ON CUCO.IDCONTRATO=CACO.IDCONTRATO
-   WHERE P.email = :email AND C.FECHAFIN IS NULL
-
-  UNION
-
-  SELECT DISTINCT CACO.IDCLIENTE AS id_cliente
-    FROM [BI DW RRHH DEV].dbo.Persona P
-    JOIN [BI DW RRHH DEV].dbo.HDW_Cecos C ON P.Numeross=C.Numeross
-    JOIN [ATISA_Input].dbo.SubDePar S ON LEFT(C.CODIDEPAR,29)=S.codidepar
-    JOIN [ATISA_Input].dbo.artCeco ARTC ON S.ceco=ARTC.codCeco
-    JOIN [ATISA_Input].dbo.cuercontra CUCO ON ARTC.codart=CUCO.idArticulo
-    JOIN [ATISA_Input].dbo.cabecontra CACO ON CUCO.IDCONTRATO=CACO.IDCONTRATO
-   WHERE P.email = :email AND C.FECHAFIN IS NULL
-)
+SQL_TODO_EN_UNO = MIS_CLIENTES_CTE + """
 SELECT
   mc.id_cliente             AS cliente_id,
   c.razsoc                  AS cliente_nombre,
@@ -86,13 +57,11 @@ class ProcesoRepositorySQL(ProcesoRepository):
         self.session.commit()
         return True
 
-    def listar_procesos_y_hitos_por_empleado(self, email: str):
-        # 1) Ejecuta la consulta
-        result = self.session.execute(text(SQL_TODO_EN_UNO), {"email": email})
-        # 2) Convierte a diccionarios
+    def listar_procesos_cliente_por_empleado(self, email: str):
+        
+        result = self.session.execute(text(SQL_TODO_EN_UNO), {"email": email})        
         rows = result.mappings().all()
 
-        # 3) Mapea a Cliente → [Procesos]
         clientes = OrderedDict()
         for r in rows:
             cid = r["cliente_id"]
@@ -114,7 +83,6 @@ class ProcesoRepositorySQL(ProcesoRepository):
                     "fecha_fin": r["proceso_fecha_fin"]
                 }
 
-        # 4) Convierte los OrderedDict a listas
         resultado = []
         for entry in clientes.values():
             entry["procesos"] = list(entry["procesos"].values())

@@ -8,6 +8,7 @@ from app.application.use_cases.procesos.listar_procesos import listar_procesos
 from app.application.use_cases.procesos.update_proceso import actualizar_proceso
 from app.application.use_cases.procesos.get_proceso import obtener_proceso
 from app.application.use_cases.procesos.delete_proceso import eliminar_proceso
+from app.application.use_cases.procesos.listar_procesos_cliente_por_empleado import listar_procesos_cliente_por_empleado
 
 router = APIRouter()
 
@@ -26,7 +27,7 @@ def get_repo(db: Session = Depends(get_db)):
 def crear(data: dict, repo = Depends(get_repo)):
     return crear_proceso(data, repo)
 
-@router.get("/procesos/mis-clientes-optimo")
+@router.get("/procesos/procesos-cliente-por-empleado")
 def mis_procesos_optimo(
     email: str = Query(..., description="Email del empleado que hace la consulta"),
     repo=  Depends(get_repo)
@@ -36,7 +37,7 @@ def mis_procesos_optimo(
     de los clientes asociados al email de empleado que le pases como query param.
     Ejemplo: GET /procesos/mis-clientes-optimo?email=mi@empleado.com
     """
-    return repo.listar_procesos_y_hitos_por_empleado(email)
+    return listar_procesos_cliente_por_empleado(email,repo)
 
 # Listar todos los procesos
 @router.get("/procesos")

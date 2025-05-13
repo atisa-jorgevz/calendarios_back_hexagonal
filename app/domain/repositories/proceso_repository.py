@@ -24,28 +24,7 @@ class ProcesoRepository(ABC):
     @abstractmethod
     def eliminar(self, id: int):
         pass
+      
     @abstractmethod
-    def listar_procesos_y_hitos_por_empleado(        
-        self, email: str
-    ) -> List[Dict[str, Any]]:
-         """
-         Devuelve lista de dicts con la forma:
-         [
-           {
-             "cliente": { "id": str, "nombre": str, … },
-             "procesos": [
-               {
-                 "id": str,
-                 "estado": str,
-                 "fecha_creacion": datetime,
-                 "hitos": [
-                   { "id": str, "nombre": str, "estado": str },
-                   …
-                 ]
-               },
-               …
-             ]
-           },
-           …
-         ]
-         """
+    def listar_procesos_cliente_por_empleado(self, email: str):
+        pass

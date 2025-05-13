@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException,Query
 from sqlalchemy.orm import Session
 from app.infrastructure.db.database import SessionLocal
 from app.infrastructure.db.repositories.hito_repository_sql import HitoRepositorySQL
@@ -8,6 +8,7 @@ from app.application.use_cases.hitos.listar_hitos import listar_hitos
 from app.application.use_cases.hitos.update_hito import actualizar_hito
 from app.application.use_cases.hitos.get_hito import obtener_hito
 from app.application.use_cases.hitos.delete_hito import eliminar_hito
+from app.application.use_cases.hitos.listar_hitos_cliente_por_empleado import listar_hitos_cliente_por_empleado
 
 router = APIRouter()
 
@@ -25,6 +26,13 @@ def get_repo(db: Session = Depends(get_db)):
 @router.post("/hitos")
 def crear(data: dict, repo = Depends(get_repo)):
     return crear_hito(data, repo)
+
+
+@router.get("/hitos/hitos-cliente-por-empleado")
+def obtener_hitos_por_empleado(email: str = Query(..., description="Email del empleado que hace la consulta"),
+    repo=  Depends(get_repo)
+):
+    return listar_hitos_cliente_por_empleado(email,repo)
 
 # Listar todos los hitos
 @router.get("/hitos")
@@ -57,3 +65,4 @@ def delete_hito(id: int, repo = Depends(get_repo)):
     if not resultado:
         raise HTTPException(status_code=404, detail="Hito no encontrado")
     return {"mensaje": "Hito eliminado"}
+

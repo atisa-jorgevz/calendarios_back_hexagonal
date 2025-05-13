@@ -22,3 +22,7 @@ class HitoRepository(ABC):
     @abstractmethod
     def eliminar(self, id: int):
         pass
+    
+    @abstractmethod
+    def listar_hitos_cliente_por_empleado(self, email: str):
+        pass
