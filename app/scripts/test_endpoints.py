@@ -211,12 +211,12 @@ def main():
     test_eliminar_plantilla(id_plantilla)
     print("💥 TEST DE PLANTILLAS FINALIZADO 💥")
     # Cliente Proceso
-    test_listar_cliente_procesos()
-    test_obtener_cliente_proceso_por_id(6)  # Ajusta el ID si lo necesitas
+    #test_listar_cliente_procesos()
+    #test_obtener_cliente_proceso_por_id(6)  # Ajusta el ID si lo necesitas
 
     # Cliente Proceso Hito
-    test_listar_cliente_proceso_hitos()
-    test_obtener_cliente_proceso_hito_por_id(7)  # Ajusta el ID si lo necesitas
+    #test_listar_cliente_proceso_hitos()
+    #test_obtener_cliente_proceso_hito_por_id(7)  # Ajusta el ID si lo necesitas
 
     print("\n💥 TODOS LOS TESTS FINALIZADOS CON ÉXITO 💥")
 

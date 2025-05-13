@@ -1,3 +1,4 @@
+from typing import Optional
 from fastapi import APIRouter, Depends, HTTPException,Query
 from sqlalchemy.orm import Session
 from app.infrastructure.db.database import SessionLocal
@@ -29,10 +30,15 @@ def crear(data: dict, repo = Depends(get_repo)):
 
 
 @router.get("/hitos/hitos-cliente-por-empleado")
-def obtener_hitos_por_empleado(email: str = Query(..., description="Email del empleado que hace la consulta"),
-    repo=  Depends(get_repo)
+def obtener_hitos_por_empleado(
+    email: str = Query(..., description="Email del empleado para obtener los clientes asociados"),
+    repo=  Depends(get_repo),
+    fecha_inicio: Optional[str] = Query(None, description="Fecha mínima (YYYY-MM-DD) de inicio del hito"),
+    fecha_fin: Optional[str] = Query(None, description="Fecha máxima (YYYY-MM-DD) de inicio del hito"),
+    mes: Optional[int] = Query(None, ge=1, le=12, description="Mes de inicio del hito (1-12)"),
+    anio: Optional[int] = Query(None, ge=2000, le=2100, description="Año de inicio del hito (ej. 2024)")    
 ):
-    return listar_hitos_cliente_por_empleado(email,repo)
+    return listar_hitos_cliente_por_empleado(email,repo,fecha_inicio,fecha_fin,mes,anio)
 
 # Listar todos los hitos
 @router.get("/hitos")

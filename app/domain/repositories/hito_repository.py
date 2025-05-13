@@ -1,5 +1,6 @@
 from abc import ABC, abstractmethod
 from app.domain.entities.hito import Hito
+from typing import Optional
 
 class HitoRepository(ABC):
 
@@ -24,5 +25,11 @@ class HitoRepository(ABC):
         pass
     
     @abstractmethod
-    def listar_hitos_cliente_por_empleado(self, email: str):
+    def listar_hitos_cliente_por_empleado(self,
+        email: str,
+        fecha_inicio: Optional[str] = None,
+        fecha_fin: Optional[str] = None,
+        mes: Optional[int] = None,
+        anio: Optional[int] = None
+    ):
         pass

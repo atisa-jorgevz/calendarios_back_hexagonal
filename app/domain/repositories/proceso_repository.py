@@ -1,7 +1,7 @@
 # app/domain/repositories/proceso_repository.py
 from abc import ABC, abstractmethod
 from app.domain.entities.proceso import Proceso
-from typing import List, Any, Dict
+from typing import List, Any, Dict, Optional
 
 class ProcesoRepository(ABC):
 
@@ -26,5 +26,11 @@ class ProcesoRepository(ABC):
         pass
       
     @abstractmethod
-    def listar_procesos_cliente_por_empleado(self, email: str):
+    def listar_procesos_cliente_por_empleado(self, 
+        email: str, 
+        fecha_inicio: Optional[str] = None, 
+        fecha_fin: Optional[str] = None, 
+        mes: Optional[int] = None, 
+        anio: Optional[int] = None
+    ):
         pass

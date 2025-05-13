@@ -4,21 +4,8 @@ from sqlalchemy import text
 from collections import OrderedDict
 from app.infrastructure.db.models import ProcesoModel
 from app.infrastructure.db.compartido.mis_clientes_cte import MIS_CLIENTES_CTE
+from app.infrastructure.db.compartido.mis_clientes_cte import construir_sql_procesos_cliente_por_empleado
 
-SQL_TODO_EN_UNO = MIS_CLIENTES_CTE + """
-SELECT
-  mc.id_cliente             AS cliente_id,
-  c.razsoc                  AS cliente_nombre,
-  p.id                      AS proceso_id,
-  p.nombre                  AS proceso_nombre,
-  p.fecha_inicio            AS proceso_fecha_inicio,
-  p.fecha_fin               AS proceso_fecha_fin
-FROM mis_clientes mc
-  JOIN [ATISA_Input].dbo.clientes c        ON c.idcliente   = mc.id_cliente
-  JOIN [ATISA_Input].dbo.cliente_proceso cp ON cp.idcliente  = c.idcliente
-  JOIN [ATISA_Input].dbo.proceso p         ON p.id          = cp.id_proceso
-ORDER BY mc.id_cliente, p.id;
-"""
 
 class ProcesoRepositorySQL(ProcesoRepository):
     def __init__(self, session):
@@ -57,9 +44,22 @@ class ProcesoRepositorySQL(ProcesoRepository):
         self.session.commit()
         return True
 
-    def listar_procesos_cliente_por_empleado(self, email: str):
-        
-        result = self.session.execute(text(SQL_TODO_EN_UNO), {"email": email})        
+    def listar_procesos_cliente_por_empleado(self, email: str, fecha_inicio=None, fecha_fin=None, mes=None, anio=None):
+        sql = construir_sql_procesos_cliente_por_empleado(
+            filtrar_fecha=bool(fecha_inicio and fecha_fin),
+            filtrar_mes=bool(mes),
+            filtrar_anio=bool(anio)
+        )
+
+        params = {
+            "email": email,
+            "fecha_inicio": fecha_inicio,
+            "fecha_fin": fecha_fin,
+            "mes": mes,
+            "anio": anio
+        }
+
+        result = self.session.execute(text(sql), params)
         rows = result.mappings().all()
 
         clientes = OrderedDict()
@@ -73,8 +73,8 @@ class ProcesoRepositorySQL(ProcesoRepository):
                     },
                     "procesos": OrderedDict()
                 }
-            proc_map = clientes[cid]["procesos"]
             pid = r["proceso_id"]
+            proc_map = clientes[cid]["procesos"]
             if pid not in proc_map:
                 proc_map[pid] = {
                     "id": pid,
@@ -89,4 +89,3 @@ class ProcesoRepositorySQL(ProcesoRepository):
             resultado.append(entry)
 
         return resultado
-        

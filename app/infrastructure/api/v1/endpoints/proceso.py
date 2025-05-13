@@ -1,3 +1,4 @@
+from typing import Optional
 from fastapi import APIRouter, Depends, HTTPException,Query
 from sqlalchemy.orm import Session
 from app.infrastructure.db.database import SessionLocal
@@ -28,16 +29,27 @@ def crear(data: dict, repo = Depends(get_repo)):
     return crear_proceso(data, repo)
 
 @router.get("/procesos/procesos-cliente-por-empleado")
-def mis_procesos_optimo(
+def procesos_cliente_por_empleado(
     email: str = Query(..., description="Email del empleado que hace la consulta"),
-    repo=  Depends(get_repo)
+    fecha_inicio: Optional[str] = Query(None, description="Fecha mínima (YYYY-MM-DD)"),
+    fecha_fin: Optional[str] = Query(None, description="Fecha máxima (YYYY-MM-DD)"),
+    mes: Optional[int] = Query(None, ge=1, le=12, description="Mes de inicio (1-12)"),
+    anio: Optional[int] = Query(None, ge=2000, le=2100, description="Año de inicio (ej: 2024)"),
+    repo = Depends(get_repo)
 ):
     """
     Devuelve en UNA sola llamada a BD todos los procesos (con sus hitos)
     de los clientes asociados al email de empleado que le pases como query param.
     Ejemplo: GET /procesos/mis-clientes-optimo?email=mi@empleado.com
     """
-    return listar_procesos_cliente_por_empleado(email,repo)
+    return listar_procesos_cliente_por_empleado(
+        email=email,
+        repo=repo,
+        fecha_inicio=fecha_inicio,
+        fecha_fin=fecha_fin,
+        mes=mes,
+        anio=anio
+    )
 
 # Listar todos los procesos
 @router.get("/procesos")

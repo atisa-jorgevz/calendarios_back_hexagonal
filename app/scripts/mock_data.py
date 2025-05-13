@@ -22,7 +22,7 @@ def poblar_cliente_proceso_mock():
 
     cliente_procesos = [
         ClienteProcesoModel(
-            idcliente="2",
+            idcliente="158",
             id_proceso=proceso.id,
             fecha_inicio="2023-01-01",
             fecha_fin="2023-12-31",
@@ -30,7 +30,7 @@ def poblar_cliente_proceso_mock():
             anio=2023
         ),
         ClienteProcesoModel(
-            idcliente="1",
+            idcliente="230",
             id_proceso=proceso.id,
             fecha_inicio="2023-01-01",
             fecha_fin="2023-12-31",
@@ -59,6 +59,8 @@ def poblar_cliente_proceso_hito_mock():
         cliente_proceso_id=cliente_proceso.id,
         hito_id=hito_maestro.id,
         estado="pendiente",
+        fecha_inicio="2023-01-01",
+        fecha_fin="2023-01-05",
         fecha_estado="2025-05-12"
     )
 
@@ -66,6 +68,32 @@ def poblar_cliente_proceso_hito_mock():
     db.commit()
     db.close()
     print("✅ Mock de ClienteProcesoHito insertado correctamente.")
+
+def borrar_tablas():
+    db: Session = SessionLocal()
+
+    modelos = [
+        ClienteProcesoHitoModel,
+        ClienteProcesoModel,
+        PlantillaProcesoModel,
+        PlantillaModel,
+        ProcesoHitoMaestroModel,
+        HitoModel,
+        ProcesoModel
+    ]
+
+    for modelo in modelos:
+        try:
+            print(f"🗑️ Borrando: {modelo.__tablename__}")
+            db.query(modelo).delete(synchronize_session=False)
+        except Exception as e:
+            print(f"⚠️ No se pudo borrar {modelo.__tablename__}: {e}")
+
+    db.commit()
+    db.close()
+    print("✅ Tablas borradas (las que existían).")
+
+
 
 def poblar_datos_mock():
     db: Session = SessionLocal()
@@ -150,6 +178,7 @@ def poblar_plantillas_procesos_mock():
     print("✅ Relaciones Plantilla-Proceso insertadas")
 
 if __name__ == "__main__":
+    #borrar_tablas()
     poblar_datos_mock()
     poblar_proceso_hito_maestro_mock()
     poblar_plantillas_mock()

@@ -4,27 +4,7 @@ from app.infrastructure.db.models import HitoModel
 from sqlalchemy import text
 from collections import OrderedDict
 from app.infrastructure.db.compartido.mis_clientes_cte import MIS_CLIENTES_CTE
-
-SQL_HITOS_POR_EMPLEADO = MIS_CLIENTES_CTE + """
-SELECT
-  mc.id_cliente                     AS cliente_id,
-  c.razsoc                          AS cliente_nombre,
-  p.id                              AS proceso_id,
-  p.nombre                          AS proceso_nombre,
-  p.fecha_inicio                    AS proceso_fecha_inicio,
-  p.fecha_fin                       AS proceso_fecha_fin,
-  h.id                              AS hito_id,
-  h.nombre                          AS hito_nombre,
-  h.fecha_inicio                    AS hito_fecha_inicio,
-  h.fecha_fin                       AS hito_fecha_fin
-FROM mis_clientes mc
-JOIN [ATISA_Input].dbo.clientes c                ON c.idcliente = mc.id_cliente
-JOIN [ATISA_Input].dbo.cliente_proceso cp        ON cp.idcliente = c.idcliente
-JOIN [ATISA_Input].dbo.proceso p                 ON p.id = cp.id_proceso
-JOIN [ATISA_Input].dbo.cliente_proceso_hito cph  ON cph.cliente_proceso_id = cp.id
-JOIN [ATISA_Input].dbo.hito h                    ON h.id = cph.hito_id
-ORDER BY mc.id_cliente, p.id, h.id;
-"""
+from app.infrastructure.db.compartido.mis_clientes_cte import construir_sql_hitos_cliente_por_empleado
 
 class HitoRepositorySQL(HitoRepository):
     def __init__(self, session):
@@ -61,8 +41,22 @@ class HitoRepositorySQL(HitoRepository):
         self.session.commit()
         return True
     
-    def listar_hitos_cliente_por_empleado(self, email: str):
-        result = self.session.execute(text(SQL_HITOS_POR_EMPLEADO), {"email": email})
+    def listar_hitos_cliente_por_empleado(self, email, fecha_inicio=None, fecha_fin=None, mes=None, anio=None):
+        sql = construir_sql_hitos_cliente_por_empleado(
+            filtrar_fecha=bool(fecha_inicio and fecha_fin),
+            filtrar_mes=bool(mes),
+            filtrar_anio=bool(anio)
+        )
+
+        params = {
+            "email": email,
+            "fecha_inicio": fecha_inicio,
+            "fecha_fin": fecha_fin,
+            "mes": mes,
+            "anio": anio
+        }
+
+        result = self.session.execute(text(sql), params)
         rows = result.mappings().all()
 
         clientes = OrderedDict()
@@ -78,21 +72,21 @@ class HitoRepositorySQL(HitoRepository):
                 }
 
             pid = r["proceso_id"]
-            procesos = clientes[cid]["procesos"]
-            if pid not in procesos:
-                procesos[pid] = {
+            proc_map = clientes[cid]["procesos"]
+            if pid not in proc_map:
+                proc_map[pid] = {
                     "id": pid,
                     "nombre": r["proceso_nombre"],
-                    "fecha_inicio": r["proceso_fecha_inicio"],
-                    "fecha_fin": r["proceso_fecha_fin"],
+                    "fecha_inicio": r["fecha_inicio"],
+                    "fecha_fin": r["fecha_fin"],
                     "hitos": []
                 }
 
-            procesos[pid]["hitos"].append({
+            proc_map[pid]["hitos"].append({
                 "id": r["hito_id"],
                 "nombre": r["hito_nombre"],
-                "fecha_inicio": r["hito_fecha_inicio"],
-                "fecha_fin": r["hito_fecha_fin"]
+                "fecha_inicio": r["fecha_inicio_hito"],
+                "fecha_fin": r["fecha_fin_hito"]
             })
 
         resultado = []
