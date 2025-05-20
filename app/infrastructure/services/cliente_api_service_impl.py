@@ -12,3 +12,4 @@ class ClienteAPIServiceImpl(ClienteAPIService):
             .first()
         )
         return cliente is not None
+    
