@@ -2,15 +2,18 @@ version: "3.9"
 
 services:
   backend:
-    container_name: hex_backend
+    container_name: arc_hex_backend
+    profiles: ["ARC"]
     build:
       context: .
       dockerfile: Dockerfile
     ports:
-      - "8092:8000"
+      - "8088:8000"
     volumes:
       - ./app:/code/app
     env_file:
       - .env
     command: >
       bash -c "uvicorn app.main:app --host 0.0.0.0 --port 8000 --reload"
+
+# docker compose --profile ARC up
