@@ -1,4 +1,3 @@
-
 # 🧠 Backend Calendarios – Arquitectura Hexagonal
 
 Este repositorio implementa un sistema backend para la gestión de calendarios empresariales, procesos y hitos asociados a clientes, respetando los principios de la **arquitectura hexagonal (puertos y adaptadores)** y **principios SOLID**.
@@ -86,6 +85,82 @@ ClienteProceso ⟶ ClienteProcesoHito ⟶ Hito (vía ProcesoHitoMaestro)
 
 ---
 
+## 📆 Generación de Calendarios por Temporalidad
+
+Este sistema permite crear automáticamente registros de `ClienteProceso` en función de la `temporalidad` y `frecuencia` definidas en un `Proceso` maestro.
+
+---
+
+### 🧠 Diseño aplicado
+
+Se ha implementado el **Patrón Estrategia** para separar la lógica de cada tipo de temporalidad en clases individuales, y un **módulo fábrica** para seleccionar dinámicamente la estrategia adecuada.
+
+Ventajas:
+- Abierto a nuevas temporalidades sin romper el código existente (Open/Closed).
+- Testeable por unidad.
+- Código limpio y mantenible.
+
+---
+
+### 📁 Ubicación del código
+
+La lógica de generación se encuentra en:
+
+```
+app/application/services/generadores_temporalidad/
+```
+
+Contiene:
+
+- `base_generador.py`: Interfaz base (abstracta).
+- `factory.py`: Fábrica para obtener el generador según la temporalidad.
+- `generador_mensual.py`: Lógica para temporalidad "mes".
+- `generador_semanal.py`: Lógica para "semana".
+- `generador_diario.py`: Lógica para "día".
+- `generador_quincenal.py`: Cada 15 días.
+- `generador_trimestral.py`: Tramos fijos de 3 meses.
+
+---
+
+### 🔁 Temporalidades soportadas
+
+| Temporalidad  | Descripción                         |
+|---------------|-------------------------------------|
+| `dia`         | Procesos generados cada X días      |
+| `semana`      | Procesos generados cada X semanas   |
+| `quincena`    | Procesos cada 15 días exactos       |
+| `mes`         | Procesos cada X meses               |
+| `trimestre`   | Procesos cada 3 meses (fijo)        |
+
+---
+
+### ⚙️ Cómo se usa
+
+Desde el use case:
+
+```python
+from app.application.services.generadores_temporalidad.factory import obtener_generador
+
+def generar_calendario_cliente_proceso(...):
+    generador = obtener_generador(proceso_maestro.temporalidad)
+    return generador.generar(data, proceso_maestro, repo)
+```
+
+---
+
+### 🧩 Añadir nuevas temporalidades
+
+1. Crear `generador_mitemporalidad.py` en `generadores_temporalidad/`.
+2. Heredar de `GeneradorTemporalidad` e implementar `generar(...)`.
+3. Registrar en `factory.py`:
+
+```python
+elif temporalidad == "mitemporalidad":
+    return GeneradorMiTemporalidad()
+```
+
+---
+
 ## ✍️ Proceso para Agregar Nuevas Entidades
 
 1. **Dominio**
@@ -133,6 +208,7 @@ ClienteProceso ⟶ ClienteProcesoHito ⟶ Hito (vía ProcesoHitoMaestro)
 - Fácil testeo, mantenimiento y escalabilidad
 
 ---
+
 ## 🔐 Autenticación por API Key
 
 ### 1. Autenticación de clientes API (`x-api-key`)
@@ -198,4 +274,3 @@ curl -X POST http://localhost:8000/admin/api-clientes \
 - Las claves API son únicas por cliente.
 - Se pueden revocar sin eliminar al cliente.
 - Es posible extender con límites de uso, auditoría, IPs, etc.
-
