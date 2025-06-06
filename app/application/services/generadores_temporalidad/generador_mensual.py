@@ -4,6 +4,7 @@ from app.domain.entities.cliente_proceso import ClienteProceso
 from app.domain.entities.proceso import Proceso
 from app.domain.repositories.cliente_proceso_repository import ClienteProcesoRepository
 from .base_generador import GeneradorTemporalidad
+from app.infrastructure.mappers.cliente_proceso_mapper import mapear_modelo_a_entidad
 
 class GeneradorMensual(GeneradorTemporalidad):
     def generar(self, data, proceso_maestro: Proceso, repo: ClienteProcesoRepository) -> dict:
@@ -32,8 +33,8 @@ class GeneradorMensual(GeneradorTemporalidad):
                 anio=anio,
                 id_anterior=None
             )
-            procesos_creados.append(repo.guardar(cliente_proceso))
-
+            
+            procesos_creados.append(mapear_modelo_a_entidad(repo.guardar(cliente_proceso)))
             if mes_inicio + frecuencia > 12:
                 break
             fecha_actual = date(anio, mes_inicio + frecuencia, 1)
@@ -41,5 +42,6 @@ class GeneradorMensual(GeneradorTemporalidad):
         return {
             "mensaje": "Procesos cliente generados con éxito",
             "cantidad": len(procesos_creados),
-            "anio": anio
+            "anio": anio,
+            "procesos": procesos_creados
         }
