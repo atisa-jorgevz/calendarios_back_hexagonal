@@ -9,7 +9,7 @@ class ClienteProcesoHitoModel(Base):
 
     id = Column(Integer, primary_key=True, index=True)
     cliente_proceso_id = Column(Integer, ForeignKey("cliente_proceso.id"), nullable=False)
-    hito_id = Column(Integer, ForeignKey("proceso_hito_maestro.id"), nullable=False)
+    hito_id = Column(Integer, ForeignKey("proceso_hito_maestro.id_hito"), nullable=False)
     estado = Column(String(50), nullable=False)
     fecha_estado = Column(DateTime, nullable=True)
     fecha_inicio = Column(Date, nullable=False)

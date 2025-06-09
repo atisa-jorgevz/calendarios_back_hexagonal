@@ -19,4 +19,8 @@ class ProcesoHitoMaestroRepository(ABC):
     def obtener_por_id(self):
         pass
 
+    @abstractmethod
+    def listar_por_proceso(self, id_proceso: str):        
+        pass
+
     

@@ -26,3 +26,6 @@ class ProcesoHitoMaestroRepositorySQL(ProcesoHitoMaestroRepository):
         self.session.delete(relacion)
         self.session.commit()
         return True
+
+    def listar_por_proceso(self, id_proceso: str):
+        return self.session.query(ProcesoHitoMaestroModel).filter_by(id_proceso=id_proceso).all()
