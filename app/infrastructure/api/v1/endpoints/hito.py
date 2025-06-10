@@ -52,11 +52,26 @@ def obtener_hitos_por_empleado(
 
 @router.get("/hitos", tags=["Hitos"], summary="Listar todos los hitos",
     description="Devuelve todos los hitos definidos en el sistema.")
-def listar(repo = Depends(get_repo)):
+def listar(
+    page: Optional[int] = Query(None, ge=1, description="Página actual"),
+    limit: Optional[int] = Query(None, ge=1, le=100, description="Cantidad de resultados por página"),
+    repo = Depends(get_repo)
+):
     hitos = listar_hitos(repo)
+    total = len(hitos)
+
+    if page is not None and limit is not None:
+        start = (page - 1) * limit
+        end = start + limit
+        hitos = hitos[start:end]
+
     if not hitos:
         raise HTTPException(status_code=404, detail="No se encontraron hitos")
-    return hitos
+
+    return {
+        "total": total,
+        "hitos": hitos
+    }
 
 @router.get("/hitos/{id}", tags=["Hitos"], summary="Obtener hito por ID",
     description="Devuelve la información de un hito específico por su ID.")

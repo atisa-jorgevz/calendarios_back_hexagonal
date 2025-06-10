@@ -1,5 +1,6 @@
-from fastapi import APIRouter, Depends, HTTPException, Path
+from fastapi import APIRouter, Depends, HTTPException, Path, Query
 from sqlalchemy.orm import Session
+from typing import Optional
 from app.infrastructure.db.database import SessionLocal
 from app.infrastructure.db.repositories.cliente_repository_sql import ClienteRepositorySQL
 
@@ -18,14 +19,28 @@ def get_db():
 
 def get_repo(db: Session = Depends(get_db)):
     return ClienteRepositorySQL(db)
-
 @router.get("/clientes", tags=["Clientes"], summary="Listar clientes",
     description="Devuelve la lista completa de clientes registrados en el sistema.")
-def obtener_todos(repo = Depends(get_repo)):
+def obtener_todos(
+    page: Optional[int] = Query(None, ge=1, description="Página actual"),
+    limit: Optional[int] = Query(None, ge=1, le=100, description="Cantidad de resultados por página"),
+    repo = Depends(get_repo)
+):
     clientes = listar_clientes(repo)
+    total = len(clientes)
+
+    if page is not None and limit is not None:
+        start = (page - 1) * limit
+        end = start + limit
+        clientes = clientes[start:end]
+
     if not clientes:
         raise HTTPException(status_code=404, detail="No se encontraron clientes")
-    return clientes
+
+    return {
+        "total": total,
+        "clientes": clientes
+    }
 
 @router.get("/clientes/nombre/{nombre}", tags=["Clientes"], summary="Buscar clientes por nombre",
     description="Busca clientes que contengan el nombre proporcionado.")

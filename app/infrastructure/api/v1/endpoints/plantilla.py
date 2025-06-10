@@ -1,5 +1,6 @@
-from fastapi import APIRouter, Depends, HTTPException, Body
+from fastapi import APIRouter, Depends, HTTPException, Body, Query
 from sqlalchemy.orm import Session
+from typing import Optional
 from app.infrastructure.db.database import SessionLocal
 from app.infrastructure.db.repositories.plantilla_repository_sql import PlantillaRepositorySQL
 
@@ -28,11 +29,26 @@ def crear(data: dict = Body(..., example={"nombre": "Plantilla Fiscal", "descrip
 
 # Listar todos los plantillas
 @router.get("/plantillas")
-def listar(repo = Depends(get_repo)):
+def listar(
+    page: Optional[int] = Query(None, ge=1, description="Página actual"),
+    limit: Optional[int] = Query(None, ge=1, le=100, description="Cantidad de resultados por página"),
+    repo = Depends(get_repo)
+):
     plantillas = listar_plantillas(repo)
+    total = len(plantillas)
+
+    if page is not None and limit is not None:
+        start = (page - 1) * limit
+        end = start + limit
+        plantillas = plantillas[start:end]
+
     if not plantillas:
         raise HTTPException(status_code=404, detail="No se encontraron plantillas")
-    return plantillas
+
+    return {
+        "total": total,
+        "plantillas": plantillas
+    }
 
 # Obtener un plantilla por ID
 @router.get("/plantillas/{id}", tags=["Plantillas"])

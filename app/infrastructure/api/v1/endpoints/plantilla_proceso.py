@@ -35,8 +35,9 @@ def crear(
 @router.get("/plantilla-procesos", tags=["PlantillaProceso"], summary="Listar relaciones plantilla-proceso",
     description="Devuelve todas las relaciones entre plantillas y procesos.")
 def listar(repo = Depends(get_repo)):
-    return listar_relaciones(repo)
-
+    return {
+        "plantillaProcesos": listar_relaciones(repo)
+    }
 @router.get("/plantilla-procesos/plantilla/{id_plantilla}", tags=["PlantillaProceso"], summary="Procesos por plantilla",
     description="Devuelve todos los procesos asociados a una plantilla específica.")
 def procesos_por_plantilla(
