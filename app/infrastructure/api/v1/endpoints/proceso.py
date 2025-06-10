@@ -5,10 +5,7 @@ from app.infrastructure.db.database import SessionLocal
 from app.infrastructure.db.repositories.proceso_repository_sql import ProcesoRepositorySQL
 
 from app.application.use_cases.procesos.crear_proceso import crear_proceso
-from app.application.use_cases.procesos.listar_procesos import listar_procesos
 from app.application.use_cases.procesos.update_proceso import actualizar_proceso
-from app.application.use_cases.procesos.get_proceso import obtener_proceso
-from app.application.use_cases.procesos.delete_proceso import eliminar_proceso
 from app.application.use_cases.procesos.listar_procesos_cliente_por_empleado import listar_procesos_cliente_por_empleado
 
 router = APIRouter()
@@ -42,7 +39,7 @@ def crear(
 @router.get("/procesos", tags=["Procesos"], summary="Listar todos los procesos",
     description="Devuelve todos los procesos registrados en el sistema.")
 def listar(repo = Depends(get_repo)):
-    procesos = listar_procesos(repo)
+    procesos = repo.listar()
     if not procesos:
         raise HTTPException(status_code=404, detail="No se encontraron procesos")
     return procesos
@@ -53,7 +50,7 @@ def get_proceso(
     id: int = Path(..., description="ID del proceso a consultar"),
     repo = Depends(get_repo)
 ):
-    proceso = obtener_proceso(id, repo)
+    proceso = repo.obtener_por_id(id)
     if not proceso:
         raise HTTPException(status_code=404, detail="Proceso no encontrado")
     return proceso
@@ -84,7 +81,7 @@ def delete_proceso(
     id: int = Path(..., description="ID del proceso a eliminar"),
     repo = Depends(get_repo)
 ):
-    resultado = eliminar_proceso(id, repo)
+    resultado = repo.eliminar(id)
     if not resultado:
         raise HTTPException(status_code=404, detail="Proceso no encontrado")
     return {"mensaje": "Proceso eliminado"}

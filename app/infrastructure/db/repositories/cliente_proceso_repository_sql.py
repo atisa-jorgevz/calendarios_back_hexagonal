@@ -1,6 +1,7 @@
 from app.domain.entities.cliente_proceso import ClienteProceso
 from app.domain.repositories.cliente_proceso_repository import ClienteProcesoRepository
 from app.infrastructure.db.models.cliente_proceso_model import ClienteProcesoModel
+from app.infrastructure.mappers.cliente_proceso_mapper import mapear_modelo_a_entidad
 
 class ClienteProcesoRepositorySQL(ClienteProcesoRepository):
     def __init__(self, session):
@@ -11,7 +12,7 @@ class ClienteProcesoRepositorySQL(ClienteProcesoRepository):
         self.session.add(modelo)
         self.session.commit()
         self.session.refresh(modelo)
-        return modelo
+        return mapear_modelo_a_entidad(modelo)
 
     def listar(self):
         return self.session.query(ClienteProcesoModel).all()
