@@ -41,11 +41,26 @@ def crear(
 
 @router.get("/procesos", tags=["Procesos"], summary="Listar todos los procesos",
     description="Devuelve todos los procesos registrados en el sistema.")
-def listar(repo = Depends(get_repo)):
+def listar(
+    page: Optional[int] = Query(None, ge=1, description="Página actual"),
+    limit: Optional[int] = Query(None, ge=1, le=100, description="Cantidad de resultados por página"),
+    repo = Depends(get_repo)
+):
     procesos = listar_procesos(repo)
+    total = len(procesos)
+
+    if page is not None and limit is not None:
+        start = (page - 1) * limit
+        end = start + limit
+        procesos = procesos[start:end]
+
     if not procesos:
         raise HTTPException(status_code=404, detail="No se encontraron procesos")
-    return procesos
+
+    return {
+        "total": total,
+        "procesos": procesos
+    }
 
 @router.get("/procesos/{id}", tags=["Procesos"], summary="Obtener proceso por ID",
     description="Devuelve los datos de un proceso específico según su ID.")

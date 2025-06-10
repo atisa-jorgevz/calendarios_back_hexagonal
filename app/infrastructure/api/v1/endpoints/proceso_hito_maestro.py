@@ -32,7 +32,9 @@ def crear(
 @router.get("/proceso-hitos", tags=["ProcesoHitoMaestro"], summary="Listar relaciones proceso-hito",
     description="Devuelve todas las relaciones entre procesos e hitos registradas.")
 def listar(repo = Depends(get_repo)):
-    return listar_relaciones(repo)
+    return {
+        "procesoHitos" : listar_relaciones(repo)
+    }
 
 @router.delete("/proceso-hitos/{id}", tags=["ProcesoHitoMaestro"], summary="Eliminar relación proceso-hito",
     description="Elimina una relación entre un proceso y un hito por su ID.")
