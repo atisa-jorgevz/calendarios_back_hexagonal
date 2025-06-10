@@ -3,7 +3,8 @@ from app.domain.repositories.proceso_hito_maestro_repository import ProcesoHitoM
 from app.domain.repositories.cliente_proceso_hito_repository import ClienteProcesoHitoRepository
 from app.domain.entities.proceso import Proceso
 from app.application.services.generadores_temporalidad.factory import obtener_generador
-from app.application.use_cases.cliente_proceso_hito.crear_hitos_para_cliente_proceso import crear_hitos_para_cliente_proceso
+from app.domain.entities.cliente_proceso_hito import ClienteProcesoHito
+from datetime import datetime
 
 def generar_calendario_cliente_proceso(
     data,
@@ -17,7 +18,18 @@ def generar_calendario_cliente_proceso(
 
     # Crear hitos para cada ClienteProceso generado
     for cliente_proceso in resultado.get("procesos", []):
-        crear_hitos_para_cliente_proceso(cliente_proceso, repo_hito_maestro, repo_hito_cliente)
+        hitos_maestros = repo_hito_maestro.listar_por_proceso(cliente_proceso.id_proceso)
+        for hito in hitos_maestros:
+            nuevo_hito = ClienteProcesoHito(
+                id=None,
+                cliente_proceso_id=cliente_proceso.id,
+                hito_id=hito.id_hito,
+                estado="Nuevo",
+                fecha_inicio=cliente_proceso.fecha_inicio,
+                fecha_fin=None,
+                fecha_estado=datetime.utcnow()
+            )        
+            repo_hito_cliente.guardar(nuevo_hito)        
 
     return {
         "mensaje": resultado.get("mensaje"),

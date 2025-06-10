@@ -3,11 +3,7 @@ from sqlalchemy.orm import Session
 from app.infrastructure.db.database import SessionLocal
 from app.infrastructure.db.repositories.plantilla_proceso_repository_sql import PlantillaProcesoRepositorySQL
 
-from app.application.use_cases.plantilla_proceso.crear_relacion import crear_relacion
-from app.application.use_cases.plantilla_proceso.listar_relaciones import listar_relaciones
-from app.application.use_cases.plantilla_proceso.listar_procesos_por_plantilla import listar_procesos_por_plantilla
-from app.application.use_cases.plantilla_proceso.eliminar_relacion import eliminar_relacion
-from app.application.use_cases.plantilla_proceso.eliminar_relacion_por_plantilla import eliminar_relacion_por_plantilla
+from app.domain.entities.plantilla_proceso import PlantillaProceso
 
 router = APIRouter()
 
@@ -30,13 +26,18 @@ def crear(
     }),
     repo = Depends(get_repo)
 ):
-    return crear_relacion(data, repo)
+     relacion = PlantillaProceso(
+        proceso_id=data["proceso_id"],
+        plantilla_id=data["plantilla_id"]
+    )
+     return repo.guardar(relacion)
+    
 
 @router.get("/plantilla-procesos", tags=["PlantillaProceso"], summary="Listar relaciones plantilla-proceso",
     description="Devuelve todas las relaciones entre plantillas y procesos.")
 def listar(repo = Depends(get_repo)):
     return {
-        "plantillaProcesos": listar_relaciones(repo)
+        "plantillaProcesos": repo.listar()
     }
 @router.get("/plantilla-procesos/plantilla/{id_plantilla}", tags=["PlantillaProceso"], summary="Procesos por plantilla",
     description="Devuelve todos los procesos asociados a una plantilla específica.")
@@ -44,7 +45,7 @@ def procesos_por_plantilla(
     id_plantilla: int = Path(..., description="ID de la plantilla a consultar"),
     repo = Depends(get_repo)
 ):
-    return listar_procesos_por_plantilla(id_plantilla, repo)
+    return repo.listar_procesos_por_plantilla(id_plantilla)
 
 @router.delete("/plantilla-procesos/{id}", tags=["PlantillaProceso"], summary="Eliminar relación plantilla-proceso",
     description="Elimina una relación específica entre una plantilla y un proceso por su ID.")
@@ -52,7 +53,7 @@ def eliminar(
     id: int = Path(..., description="ID de la relación a eliminar"),
     repo = Depends(get_repo)
 ):
-    ok = eliminar_relacion(id, repo)
+    ok = repo.eliminar(id)
     if not ok:
         raise HTTPException(status_code=404, detail="Relación no encontrada")
     return {"mensaje": "Relación eliminada"}
@@ -63,7 +64,7 @@ def eliminar_por_plantilla(
     id_plantilla: int = Path(..., description="ID de la plantilla cuyas relaciones quieres eliminar"),
     repo = Depends(get_repo)
 ):
-    ok = eliminar_relacion_por_plantilla(id_plantilla, repo)
+    ok = repo.eliminar_por_plantilla(id_plantilla)
     if not ok:
         raise HTTPException(status_code=404, detail="No se encontraron relaciones para la plantilla")
     return {"mensaje": "Relaciones eliminadas"}

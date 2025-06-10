@@ -4,12 +4,8 @@ from sqlalchemy.orm import Session
 from app.infrastructure.db.database import SessionLocal
 from app.infrastructure.db.repositories.hito_repository_sql import HitoRepositorySQL
 
-from app.application.use_cases.hitos.crear_hito import crear_hito
-from app.application.use_cases.hitos.listar_hitos import listar_hitos
+from app.domain.entities.hito import Hito
 from app.application.use_cases.hitos.update_hito import actualizar_hito
-from app.application.use_cases.hitos.get_hito import obtener_hito
-from app.application.use_cases.hitos.delete_hito import eliminar_hito
-from app.application.use_cases.hitos.listar_hitos_cliente_por_empleado import listar_hitos_cliente_por_empleado
 
 router = APIRouter()
 
@@ -36,7 +32,16 @@ def crear(
     }),
     repo = Depends(get_repo)
 ):
-    return crear_hito(data, repo)
+    hito = Hito(
+        nombre=data.get("nombre"),
+        descripcion=data.get("descripcion"),
+        frecuencia=data.get("frecuencia"),
+        temporalidad=data.get("temporalidad"),
+        fecha_inicio=data.get("fecha_inicio"),
+        fecha_fin=data.get("fecha_fin"),
+        obligatorio=data.get("obligatorio", False),
+    )
+    return repo.guardar(hito)    
 
 @router.get("/hitos/hitos-cliente-por-empleado", tags=["Hitos"], summary="Listar hitos por cliente/empleado",
     description="Devuelve todos los hitos asociados a los procesos de clientes gestionados por un empleado. Filtrable por fecha de inicio, fin, mes y año.")
@@ -48,7 +53,13 @@ def obtener_hitos_por_empleado(
     anio: Optional[int] = Query(None, ge=2000, le=2100, description="Año de inicio del hito"),
     repo = Depends(get_repo)
 ):
-    return listar_hitos_cliente_por_empleado(email, repo, fecha_inicio, fecha_fin, mes, anio)
+    return repo.listar_hitos_cliente_por_empleado( 
+        email= email,
+        fecha_inicio=fecha_inicio,
+        fecha_fin=fecha_fin,
+        mes=mes,
+        anio=anio
+    )
 
 @router.get("/hitos", tags=["Hitos"], summary="Listar todos los hitos",
     description="Devuelve todos los hitos definidos en el sistema.")
@@ -57,7 +68,7 @@ def listar(
     limit: Optional[int] = Query(None, ge=1, le=100, description="Cantidad de resultados por página"),
     repo = Depends(get_repo)
 ):
-    hitos = listar_hitos(repo)
+    hitos = repo.listar()
     total = len(hitos)
 
     if page is not None and limit is not None:
@@ -79,7 +90,7 @@ def get_hito(
     id: int = Path(..., description="ID del hito a consultar"),
     repo = Depends(get_repo)
 ):
-    hito = obtener_hito(id, repo)
+    hito = repo.obtener_por_id(id)
     if not hito:
         raise HTTPException(status_code=404, detail="Hito no encontrado")
     return hito
@@ -109,7 +120,7 @@ def delete_hito(
     id: int = Path(..., description="ID del hito a eliminar"),
     repo = Depends(get_repo)
 ):
-    resultado = eliminar_hito(id, repo)
+    resultado = repo.eliminar(id)
     if not resultado:
         raise HTTPException(status_code=404, detail="Hito no encontrado")
     return {"mensaje": "Hito eliminado"}

@@ -3,10 +3,7 @@ from sqlalchemy.orm import Session
 from app.infrastructure.db.database import SessionLocal
 from app.infrastructure.db.repositories.cliente_proceso_hito_repository_sql import ClienteProcesoHitoRepositorySQL
 
-from app.application.use_cases.cliente_proceso_hito.crear_cliente_proceso_hito import crear_cliente_proceso_hito
-from app.application.use_cases.cliente_proceso_hito.listar_cliente_proceso_hitos import listar_cliente_proceso_hitos
-from app.application.use_cases.cliente_proceso_hito.obtener_cliente_proceso_hitos_por_id import obtener_cliente_proceso_hitos_por_id
-from app.application.use_cases.cliente_proceso_hito.eliminar_cliente_proceso_hito import eliminar_cliente_proceso_hito
+from app.domain.entities.cliente_proceso_hito import ClienteProcesoHito
 
 router = APIRouter()
 
@@ -33,12 +30,18 @@ def crear(
     }),
     repo = Depends(get_repo)
 ):
-    return crear_cliente_proceso_hito(data, repo)
+    hito = ClienteProcesoHito(
+        cliente_proceso_id=data["cliente_proceso_id"],
+        hito_id=data["hito_id"],
+        estado=data["estado"],
+        fecha_estado=data.get("fecha_estado")
+    )
+    return repo.guardar(hito)    
 
 @router.get("/cliente-proceso-hitos", tags=["ClienteProcesoHito"], summary="Listar todas las relaciones cliente-proceso-hito",
     description="Devuelve todas las relaciones entre clientes, procesos e hitos registradas.")
 def listar(repo = Depends(get_repo)):
-    return listar_cliente_proceso_hitos(repo)
+    return repo.listar()
 
 @router.get("/cliente-proceso-hitos/{id}", tags=["ClienteProcesoHito"], summary="Obtener relación por ID",
     description="Devuelve una relación cliente-proceso-hito específica según su ID.")
@@ -46,7 +49,7 @@ def get(
     id: int = Path(..., description="ID de la relación a consultar"),
     repo = Depends(get_repo)
 ):
-    hito = obtener_cliente_proceso_hitos_por_id(id, repo)
+    hito = repo.obtener_por_id(id)
     if not hito:
         raise HTTPException(status_code=404, detail="No encontrado")
     return hito
@@ -57,7 +60,7 @@ def delete(
     id: int = Path(..., description="ID de la relación a eliminar"),
     repo = Depends(get_repo)
 ):
-    ok = eliminar_cliente_proceso_hito(id, repo)
+    ok = repo.eliminar(id)
     if not ok:
         raise HTTPException(status_code=404, detail="No encontrado")
     return {"mensaje": "Eliminado"}
