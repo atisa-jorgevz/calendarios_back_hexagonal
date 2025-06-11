@@ -18,3 +18,9 @@ Dockerfile
 
 # Repositorio específico (opcional)
 app/infrastructure/db/repositories/__pycache__/
+
+__pycache__/
+*.pyc
+
+__pycache__/
+*.pyc

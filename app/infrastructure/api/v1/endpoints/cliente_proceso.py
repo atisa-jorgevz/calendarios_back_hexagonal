@@ -1,5 +1,6 @@
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy.orm import Session
+from typing import Optional
 from app.infrastructure.db.database import SessionLocal
 from app.interfaces.schemas.cliente_proceso import GenerarClienteProcesoRequest
 from app.infrastructure.db.repositories.cliente_proceso_repository_sql import ClienteProcesoRepositorySQL
@@ -9,8 +10,6 @@ from app.infrastructure.db.repositories.cliente_proceso_hito_repository_sql impo
 
 from app.application.use_cases.cliente_proceso.crear_cliente_proceso import crear_cliente_proceso
 from app.application.use_cases.cliente_proceso.generar_calendario_cliente_proceso import generar_calendario_cliente_proceso
-from typing import Optional
-from fastapi import Query, Depends
 
 router = APIRouter()
 
@@ -24,22 +23,22 @@ def get_db():
 def get_repo(db: Session = Depends(get_db)):
     return ClienteProcesoRepositorySQL(db)
 
-def get_repo_proceso(db: Session = Depends(get_db)):    
+def get_repo_proceso(db: Session = Depends(get_db)):
     return ProcesoRepositorySQL(db)
 
-def get_repo_proceso_hito_maestro(db: Session = Depends(get_db)):    
+def get_repo_proceso_hito_maestro(db: Session = Depends(get_db)):
     return ProcesoHitoMaestroRepositorySQL(db)
 
-def get_repo_cliente_proceso_hito(db: Session = Depends(get_db)):    
+def get_repo_cliente_proceso_hito(db: Session = Depends(get_db)):
     return ClienteProcesoHitoRepositorySQL(db)
 
 @router.post("/cliente-procesos")
 def crear(data: dict, repo = Depends(get_repo)):
     return crear_cliente_proceso(data, repo)
-    
+
 @router.post("/generar-calendario-cliente-proceso")
 def generar_calendario_cliente_by_proceso(request: GenerarClienteProcesoRequest,
-                                        repo = Depends(get_repo), 
+                                        repo = Depends(get_repo),
                                         proceso_repo = Depends(get_repo_proceso),
                                         repo_proceso_hito_maestro = Depends(get_repo_proceso_hito_maestro),
                                         repo_cliente_proceso_hito = Depends(get_repo_cliente_proceso_hito)):
