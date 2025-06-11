@@ -209,7 +209,8 @@ elif temporalidad == "mitemporalidad":
 
 ---
 
-# 🔐 Autenticación API por API Key + JWT
+
+# 🔐 Autenticación API por API Key + JWT + Refresh Token
 
 Este proyecto implementa un sistema de autenticación simple y seguro basado en creación de clientes API, generación de claves y uso de JWTs para acceder a rutas protegidas.
 
@@ -244,7 +245,7 @@ Esta clave sirve como contraseña del cliente. No se almacena en texto plano en 
 
 ---
 
-## 2️⃣ Obtener un token JWT
+## 2️⃣ Obtener tokens (access + refresh)
 
 **Endpoint:**  
 `POST /token`
@@ -262,17 +263,17 @@ password=KZURpV7R2Fn0L3DKGk8vdHjZyNqUs9kEIxDdSytaz
 ```json
 {
   "access_token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
+  "refresh_token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
   "token_type": "bearer"
 }
 ```
 
 ---
 
-## 3️⃣ Acceder a endpoints protegidos
+## 3️⃣ Usar el access token
 
-Una vez con el `access_token`, inclúyelo en la cabecera:
+Una vez con el `access_token`, inclúyelo en la cabecera de cada request:
 
-**Ejemplo de request:**
 ```http
 GET /clientes
 Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6...
@@ -280,7 +281,34 @@ Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6...
 
 ---
 
-## 4️⃣ Manejo de errores
+## 4️⃣ Renovar el access token con refresh token
+
+**Endpoint:**  
+`POST /refresh-token`
+
+**Headers:**
+- `Content-Type: application/json`
+
+**Body:**
+```json
+{
+  "refresh_token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9..."
+}
+```
+
+**Respuesta:**
+```json
+{
+  "access_token": "eyJhbGciOiJIUzI1NiIsInR5cCI6...",
+  "token_type": "bearer"
+}
+```
+
+> ⚠️ Si el refresh token ha expirado, se debe solicitar login nuevamente.
+
+---
+
+## 5️⃣ Manejo de errores
 
 Si el token es inválido o ha expirado, se devuelve:
 
@@ -290,7 +318,7 @@ Si el token es inválido o ha expirado, se devuelve:
 }
 ```
 
-Esto permite al cliente frontend detectar el estado de la sesión y redirigir al login si es necesario.
+Esto permite al cliente frontend detectar el estado de la sesión y redirigir al login o intentar renovar el token.
 
 ---
 
@@ -298,19 +326,25 @@ Esto permite al cliente frontend detectar el estado de la sesión y redirigir al
 
 ```bash
 # Crear cliente API (admin)
-curl -X POST http://localhost:8088/admin/api-clientes   -H "x-admin-key: <CLAVE_ADMIN>"   -H "Content-Type: application/json"   -d '{"nombre_cliente": "cliente_demo"}'
+curl -X POST http://localhost:8088/admin/api-clientes \
+  -H "x-admin-key: <CLAVE_ADMIN>" \
+  -H "Content-Type: application/json" \
+  -d '{"nombre_cliente": "cliente_demo"}'
 
-# Obtener token
-curl -X POST http://localhost:8088/token   -H "Content-Type: application/x-www-form-urlencoded"   -d "username=cliente_demo"   -d "password=<CLAVE_ENTREGADA>"
+# Obtener tokens
+curl -X POST http://localhost:8088/token \
+  -H "Content-Type: application/x-www-form-urlencoded" \
+  -d "username=cliente_demo" \
+  -d "password=<CLAVE_ENTREGADA>"
 
-# Usar token
-curl http://localhost:8088/clientes   -H "Authorization: Bearer <ACCESS_TOKEN>"
+# Usar access token
+curl http://localhost:8088/clientes \
+  -H "Authorization: Bearer <ACCESS_TOKEN>"
 
-#### Endpoints disponibles
+# Renovar access token con refresh token
+curl -X POST http://localhost:8088/refresh-token \
+  -H "Content-Type: application/json" \
+  -d '{"refresh_token": "<REFRESH_TOKEN>"}'
+```
 
-| Método | Ruta                          | Acción                                      |
-|--------|-------------------------------|---------------------------------------------|
-| GET    | `/admin/api-clientes`         | Lista todos los clientes API                |
-| POST   | `/admin/api-clientes`         | Crea un nuevo cliente y genera su API Key   |
-| PUT    | `/admin/api-clientes/{id}`    | Activa o desactiva una clave existente      |
-
+--
