@@ -28,3 +28,6 @@ class ClienteProcesoHitoRepositorySQL(ClienteProcesoHitoRepository):
         self.session.delete(relacion)
         self.session.commit()
         return True
+
+    def obtener_por_cliente_proceso_id(self, cliente_proceso_id: int):
+        return self.session.query(ClienteProcesoHitoModel).filter_by(cliente_proceso_id=cliente_proceso_id).all()
