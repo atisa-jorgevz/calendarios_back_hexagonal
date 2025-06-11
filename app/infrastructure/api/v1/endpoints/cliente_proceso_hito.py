@@ -7,6 +7,7 @@ from app.application.use_cases.cliente_proceso_hito.crear_cliente_proceso_hito i
 from app.application.use_cases.cliente_proceso_hito.listar_cliente_proceso_hitos import listar_cliente_proceso_hitos
 from app.application.use_cases.cliente_proceso_hito.obtener_cliente_proceso_hitos_por_id import obtener_cliente_proceso_hitos_por_id
 from app.application.use_cases.cliente_proceso_hito.eliminar_cliente_proceso_hito import eliminar_cliente_proceso_hito
+from app.application.use_cases.cliente_proceso_hito.obtener_cliente_proceso_hitos_por_cliente_proceso_id import obtener_cliente_proceso_hitos_por_cliente_proceso_id
 
 router = APIRouter()
 
@@ -61,3 +62,14 @@ def delete(
     if not ok:
         raise HTTPException(status_code=404, detail="No encontrado")
     return {"mensaje": "Eliminado"}
+
+@router.get("/cliente-proceso-hitos/cliente-proceso/{id_cliente_proceso}", tags=["ClienteProcesoHito"], summary="Listar hitos de un proceso de cliente",
+    description="Devuelve todos los hitos asociados a un proceso de cliente específico.")
+def get_hitos_por_proceso(
+    id_cliente_proceso: int = Path(..., description="ID del proceso de cliente"),
+    repo = Depends(get_repo)
+):
+    hitos = obtener_cliente_proceso_hitos_por_cliente_proceso_id(id_cliente_proceso, repo)
+    if not hitos:
+        raise HTTPException(status_code=404, detail="No se encontraron hitos para este proceso")
+    return hitos

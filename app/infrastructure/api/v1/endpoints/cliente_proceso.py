@@ -1,5 +1,6 @@
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy.orm import Session
+from typing import Optional
 from app.infrastructure.db.database import SessionLocal
 from app.interfaces.schemas.cliente_proceso import GenerarClienteProcesoRequest
 from app.infrastructure.db.repositories.cliente_proceso_repository_sql import ClienteProcesoRepositorySQL
@@ -22,22 +23,22 @@ def get_db():
 def get_repo(db: Session = Depends(get_db)):
     return ClienteProcesoRepositorySQL(db)
 
-def get_repo_proceso(db: Session = Depends(get_db)):    
+def get_repo_proceso(db: Session = Depends(get_db)):
     return ProcesoRepositorySQL(db)
 
-def get_repo_proceso_hito_maestro(db: Session = Depends(get_db)):    
+def get_repo_proceso_hito_maestro(db: Session = Depends(get_db)):
     return ProcesoHitoMaestroRepositorySQL(db)
 
-def get_repo_cliente_proceso_hito(db: Session = Depends(get_db)):    
+def get_repo_cliente_proceso_hito(db: Session = Depends(get_db)):
     return ClienteProcesoHitoRepositorySQL(db)
 
 @router.post("/cliente-procesos")
 def crear(data: dict, repo = Depends(get_repo)):
     return crear_cliente_proceso(data, repo)
-    
+
 @router.post("/generar-calendario-cliente-proceso")
 def generar_calendario_cliente_by_proceso(request: GenerarClienteProcesoRequest,
-                                        repo = Depends(get_repo), 
+                                        repo = Depends(get_repo),
                                         proceso_repo = Depends(get_repo_proceso),
                                         repo_proceso_hito_maestro = Depends(get_repo_proceso_hito_maestro),
                                         repo_cliente_proceso_hito = Depends(get_repo_cliente_proceso_hito)):
@@ -58,8 +59,23 @@ def get(id: int, repo = Depends(get_repo)):
     return cliente_proceso
 
 @router.get("/cliente-procesos/cliente/{idcliente}")
-def get_por_cliente(idcliente: int, repo = Depends(get_repo)):
-    return repo.listar_por_cliente(idcliente)
+def get_por_cliente(idcliente: int,
+                    page: Optional[int] = Query(None, ge=1, description="Página actual"),
+                    limit: Optional[int] = Query(None, ge=1, le=100, description="Cantidad de resultados por página"),
+                    repo = Depends(get_repo)):
+
+    cliente_procesos = repo.listar_por_cliente(idcliente)
+    total = len(cliente_procesos)
+
+    if page is not None and limit is not None:
+        start = (page - 1) * limit
+        end = start + limit
+        cliente_procesos = cliente_procesos[start:end]
+
+    return {
+        "clienteProcesos" : cliente_procesos,
+        "total": total
+    }
 
 @router.delete("/cliente-procesos/{id}")
 def delete(id: int, repo = Depends(get_repo)):

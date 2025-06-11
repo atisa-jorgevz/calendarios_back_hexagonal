@@ -1,1 +1,20 @@
+# Ignorar archivos de entorno
 .env
+
+# Ignorar archivos de Python compilados
+__pycache__/
+*.py[cod]
+
+# Ignorar carpetas __pycache__ en cualquier nivel
+**/__pycache__/
+
+# Ignorar archivos de logs y temporales
+*.log
+*.tmp
+
+# Docker
+docker-compose.yml
+Dockerfile
+
+# Repositorio específico (opcional)
+app/infrastructure/db/repositories/__pycache__/
