@@ -71,7 +71,7 @@ def get_hitos_por_proceso(
     id_cliente_proceso: int = Path(..., description="ID del proceso de cliente"),
     repo = Depends(get_repo)
 ):
-    hitos = obtener_cliente_proceso_hitos_por_cliente_proceso_id(id_cliente_proceso, repo)
+    hitos = repo.obtener_por_cliente_proceso_id(id_cliente_proceso, repo)
     if not hitos:
         raise HTTPException(status_code=404, detail="No se encontraron hitos para este proceso")
     return hitos
