@@ -1,5 +1,5 @@
 from fastapi import FastAPI, Depends
-from app.infrastructure.api.v1.endpoints import (
+from app.interfaces.api.v1.endpoints import (
     plantilla,
     proceso,
     hito,
@@ -10,8 +10,10 @@ from app.infrastructure.api.v1.endpoints import (
     proceso_hito_maestro,
     admin_api_cliente
 )
-from app.infrastructure.api.security import verificar_api_key
 from fastapi.middleware.cors import CORSMiddleware
+from app.interfaces.api import auth_routes
+from app.interfaces.api.security.auth import get_current_user
+
 
 
 origins = [
@@ -31,13 +33,16 @@ app.add_middleware(
     allow_headers=["*"],  # Puedes limitar a ["x_api_key", "Content-Type"]
 )
 
-# Incluir routers con verificación de API key
-app.include_router(plantilla.router, dependencies=[Depends(verificar_api_key)])
-app.include_router(proceso.router, dependencies=[Depends(verificar_api_key)])
-app.include_router(hito.router, dependencies=[Depends(verificar_api_key)])
-app.include_router(cliente.router, dependencies=[Depends(verificar_api_key)])
-app.include_router(cliente_proceso.router, dependencies=[Depends(verificar_api_key)])
-app.include_router(cliente_proceso_hito.router, dependencies=[Depends(verificar_api_key)])
-app.include_router(plantilla_proceso.router, dependencies=[Depends(verificar_api_key)])
-app.include_router(proceso_hito_maestro.router, dependencies=[Depends(verificar_api_key)])
+app.include_router(auth_routes.router)
 app.include_router(admin_api_cliente.router)
+# Incluir routers con verificación de API key
+app.include_router(plantilla.router, dependencies=[Depends(get_current_user)])
+app.include_router(proceso.router, dependencies=[Depends(get_current_user)])
+app.include_router(hito.router, dependencies=[Depends(get_current_user)])
+app.include_router(cliente.router, dependencies=[Depends(get_current_user)])
+app.include_router(cliente_proceso.router, dependencies=[Depends(get_current_user)])
+app.include_router(cliente_proceso_hito.router, dependencies=[Depends(get_current_user)])
+app.include_router(plantilla_proceso.router, dependencies=[Depends(get_current_user)])
+app.include_router(proceso_hito_maestro.router, dependencies=[Depends(get_current_user)])
+
+

@@ -5,3 +5,8 @@ mysql-connector-python
 pyodbc
 python-dotenv
 requests
+python-jose
+passlib[bcrypt]
+pydantic-settings
+python-multipart
+
