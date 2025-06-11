@@ -24,7 +24,7 @@ def hash_password(password: str) -> str:
 
 
 # Verificación de contraseña
-def verify_password(plain_password: str, hashed_password: str) -> bool:
+def verify_password(plain_password: str, hashed_password: str) -> bool:    
     return pwd_context.verify(plain_password, hashed_password)
 
 
@@ -41,15 +41,15 @@ def create_access_token(data: dict, expires_delta: Optional[timedelta] = None) -
 def get_current_user(token: str = Depends(oauth2_scheme)) -> dict:
     credentials_exception = HTTPException(
         status_code=status.HTTP_401_UNAUTHORIZED,
-        detail="No se pudo validar el token",
+        detail="Token inválido o expirado",
         headers={"WWW-Authenticate": "Bearer"},
     )
-
     try:
-        payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
+        payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])    
         username: str = payload.get("sub")
         if username is None:
             raise credentials_exception
         return {"username": username}
     except JWTError:
         raise credentials_exception
+    

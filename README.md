@@ -209,46 +209,102 @@ elif temporalidad == "mitemporalidad":
 
 ---
 
-## 🔐 Autenticación por API Key
+# 🔐 Autenticación API por API Key + JWT
 
-### 1. Autenticación de clientes API (`x-api-key`)
-
-Todas las rutas principales de esta API están protegidas por autenticación mediante una clave de API personalizada por cliente.
-
-#### Cómo usarla
-
-Debes enviar el header:
-
-```
-x-api-key: <clave_del_cliente>
-```
-
-Ejemplo con `curl`:
-
-```bash
-curl -X GET http://localhost:8000/procesos \
-  -H "x-api-key: clave_erp_456"
-```
-
-#### Qué ocurre si...
-
-| Situación                     | Resultado                   |
-|------------------------------|-----------------------------|
-| No se envía la clave         | 422 Unprocessable Entity    |
-| Clave inválida o desactivada | 401 Unauthorized            |
-| Clave válida                 | ✅ Acceso concedido         |
+Este proyecto implementa un sistema de autenticación simple y seguro basado en creación de clientes API, generación de claves y uso de JWTs para acceder a rutas protegidas.
 
 ---
 
-### 2. Gestión administrativa de API Keys (`x-admin-key`)
+## 1️⃣ Crear un nuevo cliente API
 
-La administración de claves API se realiza a través de endpoints especiales, protegidos por una clave maestra separada (`x-admin-key`).
+**Endpoint:**  
+`POST /admin/api-clientes`
 
-#### Header requerido
+**Headers:**
+- `x-admin-key: <CLAVE_SECRETA_ADMIN>`
 
+**Body (JSON):**
+```json
+{
+  "nombre_cliente": "cliente_demo"
+}
 ```
-x-admin-key: <clave_administrador>
+
+**Respuesta:**
+```json
+{
+  "mensaje": "Cliente creado",
+  "api_key": "KZURpV7R2Fn0L3DKGk8vdHjZyNqUs9kEIxDdSytaz",
+  "cliente": "cliente_demo"
+}
 ```
+
+⚠️ **IMPORTANTE:** La `api_key` se muestra **una sola vez**.  
+Esta clave sirve como contraseña del cliente. No se almacena en texto plano en la base de datos.
+
+---
+
+## 2️⃣ Obtener un token JWT
+
+**Endpoint:**  
+`POST /token`
+
+**Headers:**
+- `Content-Type: application/x-www-form-urlencoded`
+
+**Body (form-data):**
+```
+username=cliente_demo
+password=KZURpV7R2Fn0L3DKGk8vdHjZyNqUs9kEIxDdSytaz
+```
+
+**Respuesta:**
+```json
+{
+  "access_token": "eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...",
+  "token_type": "bearer"
+}
+```
+
+---
+
+## 3️⃣ Acceder a endpoints protegidos
+
+Una vez con el `access_token`, inclúyelo en la cabecera:
+
+**Ejemplo de request:**
+```http
+GET /clientes
+Authorization: Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6...
+```
+
+---
+
+## 4️⃣ Manejo de errores
+
+Si el token es inválido o ha expirado, se devuelve:
+
+```json
+{
+  "detail": "Token inválido o expirado"
+}
+```
+
+Esto permite al cliente frontend detectar el estado de la sesión y redirigir al login si es necesario.
+
+---
+
+## 🧪 Ejemplo de uso con curl
+
+```bash
+# Crear cliente API (admin)
+curl -X POST http://localhost:8088/admin/api-clientes   -H "x-admin-key: <CLAVE_ADMIN>"   -H "Content-Type: application/json"   -d '{"nombre_cliente": "cliente_demo"}'
+
+# Obtener token
+curl -X POST http://localhost:8088/token   -H "Content-Type: application/x-www-form-urlencoded"   -d "username=cliente_demo"   -d "password=<CLAVE_ENTREGADA>"
+
+# Usar token
+curl http://localhost:8088/clientes   -H "Authorization: Bearer <ACCESS_TOKEN>"
 
 #### Endpoints disponibles
 
@@ -258,19 +314,3 @@ x-admin-key: <clave_administrador>
 | POST   | `/admin/api-clientes`         | Crea un nuevo cliente y genera su API Key   |
 | PUT    | `/admin/api-clientes/{id}`    | Activa o desactiva una clave existente      |
 
-#### Ejemplo de creación con `curl`
-
-```bash
-curl -X POST http://localhost:8000/admin/api-clientes \
-  -H "Content-Type: application/json" \
-  -H "x-admin-key: clave_admin_ultra_secreta" \
-  -d '{"nombre_cliente": "PowerBI"}'
-```
-
----
-
-## 🧠 Consideraciones de Seguridad
-
-- Las claves API son únicas por cliente.
-- Se pueden revocar sin eliminar al cliente.
-- Es posible extender con límites de uso, auditoría, IPs, etc.
