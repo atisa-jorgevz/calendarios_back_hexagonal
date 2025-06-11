@@ -4,10 +4,6 @@ from typing import Optional
 from app.infrastructure.db.database import SessionLocal
 from app.infrastructure.db.repositories.cliente_repository_sql import ClienteRepositorySQL
 
-from app.application.use_cases.clientes.listar_clientes import listar_clientes
-from app.application.use_cases.clientes.buscar_cliente_por_nombre import buscar_cliente_por_nombre
-from app.application.use_cases.clientes.buscar_cliente_por_cif import buscar_cliente_por_cif
-
 router = APIRouter()
 
 def get_db():
@@ -26,7 +22,7 @@ def obtener_todos(
     limit: Optional[int] = Query(None, ge=1, le=100, description="Cantidad de resultados por página"),
     repo = Depends(get_repo)
 ):
-    clientes = listar_clientes(repo)
+    clientes = repo.listar()
     total = len(clientes)
 
     if page is not None and limit is not None:
@@ -48,7 +44,7 @@ def buscar_nombre(
     nombre: str = Path(..., description="Nombre (o parte) del cliente a buscar"),
     repo = Depends(get_repo)
 ):
-    clientes = buscar_cliente_por_nombre(nombre, repo)
+    clientes = repo.buscar_por_nombre(nombre)
     if not clientes:
         raise HTTPException(status_code=404, detail="No se encontraron clientes con ese nombre")
     return clientes
@@ -59,7 +55,7 @@ def buscar_cif(
     cif: str = Path(..., description="CIF del cliente a buscar"),
     repo = Depends(get_repo)
 ):
-    cliente = buscar_cliente_por_cif(cif, repo)
+    cliente = repo.buscar_por_cif(cif)
     if not cliente:
         raise HTTPException(status_code=404, detail="Cliente no encontrado")
     return cliente

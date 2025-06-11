@@ -2,7 +2,7 @@ from fastapi import APIRouter, Depends, HTTPException, Body, Path
 from sqlalchemy.orm import Session
 from app.infrastructure.db.database import SessionLocal
 from app.infrastructure.db.repositories.proceso_hito_maestro_repository_sql import ProcesoHitoMaestroRepositorySQL
-from app.application.use_cases.proceso_hito_maestro.crear_relacion import crear_relacion
+from app.domain.entities.proceso_hito_maestro import ProcesoHitoMaestro
 
 
 router = APIRouter()
@@ -26,7 +26,11 @@ def crear(
     }),
     repo = Depends(get_repo)
 ):
-    return crear_relacion(data, repo)
+    relacion = ProcesoHitoMaestro(
+        id_proceso=data["id_proceso"],
+        id_hito=data["id_hito"]
+    )
+    return repo.crear(relacion)
 
 @router.get("/proceso-hitos", tags=["ProcesoHitoMaestro"], summary="Listar relaciones proceso-hito",
     description="Devuelve todas las relaciones entre procesos e hitos registradas.")
