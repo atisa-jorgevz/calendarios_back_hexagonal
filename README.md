@@ -348,6 +348,8 @@ curl -X POST http://localhost:8088/refresh-token \
 ```
 
 --
+docker compose --profile ARC --project-name arc_hex_backend up -d
+
 
 # Levantar los servicios (modo desatendido)
 docker compose up -d
