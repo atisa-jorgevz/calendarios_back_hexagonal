@@ -348,3 +348,16 @@ curl -X POST http://localhost:8088/refresh-token \
 ```
 
 --
+
+# Levantar los servicios (modo desatendido)
+docker compose up -d
+
+# Ver el estado de los contenedores
+docker compose ps
+
+# Ver logs en tiempo real
+docker compose logs -f
+
+# Detener y eliminar los servicios, contenedores, redes y volúmenes
+docker compose down --volumes --remove-orphans
+
