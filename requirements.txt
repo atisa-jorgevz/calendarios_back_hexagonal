@@ -7,6 +7,6 @@ python-dotenv
 requests
 python-jose
 passlib[bcrypt]
-pydantic-settings
+pydantic-settings>=2.0.0
 python-multipart
 

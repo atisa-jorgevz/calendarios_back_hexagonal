@@ -49,7 +49,12 @@ def get_current_user(token: str = Depends(oauth2_scheme)) -> dict:
         username: str = payload.get("sub")
         if username is None:
             raise credentials_exception
-        return {"username": username}
+        return {
+                "username": username,
+                "id_api_cliente": payload.get("id_api_cliente"),
+                "atisa": payload.get("atisa"),
+                "rol": payload.get("rol")  # por si lo metes más adelante
+            }
     except JWTError:
         raise credentials_exception
 

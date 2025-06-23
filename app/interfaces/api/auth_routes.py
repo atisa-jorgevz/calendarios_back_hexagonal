@@ -35,8 +35,15 @@ def login_for_access_token(
     if not verify_password(form_data.password, cliente.hashed_key):
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Clave incorrecta")
 
-    access_token_expires = timedelta(minutes=settings.ACCESS_TOKEN_EXPIRE_MINUTES)
-    access_token = create_access_token(data={"sub": cliente.nombre_cliente}, expires_delta=access_token_expires)
+    access_token_expires = timedelta(minutes=settings.ACCESS_TOKEN_EXPIRE_MINUTES)    
+    access_token = create_access_token(
+        data={
+            "sub": cliente.nombre_cliente,
+            "id_api_cliente": cliente.id,
+            "atisa": False
+        },
+        expires_delta=access_token_expires
+    )
     refresh_token = create_refresh_token(data={"sub": cliente.nombre_cliente})
     return {
         "access_token": access_token,

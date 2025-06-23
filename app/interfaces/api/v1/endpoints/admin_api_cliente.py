@@ -5,7 +5,10 @@ from app.infrastructure.db.database import SessionLocal
 from app.infrastructure.db.models.api_cliente_model import ApiClienteModel
 from app.interfaces.api.api_key_guard import verificar_admin_key
 from app.interfaces.api.security.auth import hash_password
-from app.interfaces.schemas.cliente_api import CrearClienteAPIRequest, CambiarEstadoClienteRequest
+from app.interfaces.schemas.cliente_api import CrearClienteAPIRequest, CambiarEstadoClienteRequest,AsociarClientesRequest
+from app.application.use_cases.api_clientes.asociar_clientes_api_cliente import AsociarClientesApiCliente
+from app.infrastructure.db.repositories.api_cliente_cliente_repository_sql import SqlApiClienteClienteRepository
+from app.infrastructure.db.database import get_db
 
 
 router = APIRouter()
@@ -71,3 +74,14 @@ def cambiar_estado(
         "cliente": cliente.nombre_cliente,
         "activo": cliente.activo
     }
+
+@router.post("/admin/api-clientes/{api_cliente_id}/asociar-clientes")
+def asociar_clientes_api_cliente(
+    api_cliente_id: int,
+    payload: AsociarClientesRequest,
+    db=Depends(get_db)
+):
+    repo = SqlApiClienteClienteRepository(db)
+    use_case = AsociarClientesApiCliente(repo)
+    use_case.execute(api_cliente_id, payload.cliente_ids)
+    return {"message": "Clientes asociados correctamente"}
