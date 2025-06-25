@@ -8,7 +8,8 @@ from app.interfaces.api.v1.endpoints import (
     cliente_proceso_hito,
     plantilla_proceso,
     proceso_hito_maestro,
-    admin_api_cliente
+    admin_api_cliente,
+    metadato,
 )
 from fastapi.middleware.cors import CORSMiddleware
 from app.interfaces.api import auth_routes
@@ -44,5 +45,6 @@ app.include_router(cliente_proceso.router, dependencies=[Depends(get_current_use
 app.include_router(cliente_proceso_hito.router, dependencies=[Depends(get_current_user)])
 app.include_router(plantilla_proceso.router, dependencies=[Depends(get_current_user)])
 app.include_router(proceso_hito_maestro.router, dependencies=[Depends(get_current_user)])
+app.include_router(metadato.router, dependencies=[Depends(get_current_user)])
 
 
