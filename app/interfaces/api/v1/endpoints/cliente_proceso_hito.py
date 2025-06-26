@@ -36,7 +36,7 @@ def crear(
         estado=data["estado"],
         fecha_estado=data.get("fecha_estado")
     )
-    return repo.guardar(hito)    
+    return repo.guardar(hito)
 
 @router.get("/cliente-proceso-hitos", tags=["ClienteProcesoHito"], summary="Listar todas las relaciones cliente-proceso-hito",
     description="Devuelve todas las relaciones entre clientes, procesos e hitos registradas.")
@@ -71,7 +71,7 @@ def get_hitos_por_proceso(
     id_cliente_proceso: int = Path(..., description="ID del proceso de cliente"),
     repo = Depends(get_repo)
 ):
-    hitos = repo.obtener_por_cliente_proceso_id(id_cliente_proceso, repo)
+    hitos = repo.obtener_por_cliente_proceso_id(id_cliente_proceso)
     if not hitos:
         raise HTTPException(status_code=404, detail="No se encontraron hitos para este proceso")
     return hitos
