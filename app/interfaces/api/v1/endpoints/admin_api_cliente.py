@@ -4,8 +4,8 @@ from sqlalchemy.orm import Session
 from app.infrastructure.db.database import SessionLocal
 from app.infrastructure.db.models.api_cliente_model import ApiClienteModel
 from app.interfaces.api.api_key_guard import verificar_admin_key
-from app.interfaces.api.security.auth import hash_password
-from app.interfaces.schemas.cliente_api import CrearClienteAPIRequest, CambiarEstadoClienteRequest,AsociarClientesRequest
+from app.interfaces.api.security.auth import hash_password, validar_password_criterios
+from app.interfaces.schemas.cliente_api import CrearClienteAPIRequest, CambiarEstadoClienteRequest, AsociarClientesRequest, ValidarPasswordRequest
 from app.application.use_cases.api_clientes.asociar_clientes_api_cliente import AsociarClientesApiCliente
 from app.infrastructure.db.repositories.api_cliente_cliente_repository_sql import SqlApiClienteClienteRepository
 from app.infrastructure.db.database import get_db
@@ -30,13 +30,20 @@ def listar_clientes(db: Session = Depends(get_db)):
 
 @router.post("/admin/api-clientes", tags=["Admin API"], dependencies=[Depends(verificar_admin_key)],
     summary="Crear nuevo cliente API",
-    description="Crea un nuevo cliente API con una clave secreta autogenerada.")
+    description="Crea un nuevo cliente API con una clave secreta autogenerada o proporcionada.")
 def crear_cliente(
     data: CrearClienteAPIRequest,
     db: Session = Depends(get_db)
 ):    
-    nueva_clave = secrets.token_urlsafe(32)
-    hashed_key = hash_password(nueva_clave)
+    # Si se proporciona una contraseña, la usamos directamente (sin validar)
+    if data.password:
+        # Usar la contraseña proporcionada (ya validada en frontend)
+        clave_original = data.password
+        hashed_key = hash_password(data.password)
+    else:
+        # Generar clave automáticamente como antes
+        clave_original = secrets.token_urlsafe(32)
+        hashed_key = hash_password(clave_original)
 
     cliente = ApiClienteModel(
         nombre_cliente=data.nombre_cliente,
@@ -50,8 +57,9 @@ def crear_cliente(
 
     return {
         "mensaje": "Cliente creado",
-        "api_key": nueva_clave,
-        "cliente": cliente.nombre_cliente
+        "api_key": clave_original,
+        "cliente": cliente.nombre_cliente,
+        "password_personalizada": data.password is not None
     }
 
 @router.put("/admin/api-clientes/{id}", tags=["Admin API"], dependencies=[Depends(verificar_admin_key)],
@@ -85,3 +93,33 @@ def asociar_clientes_api_cliente(
     use_case = AsociarClientesApiCliente(repo)
     use_case.execute(api_cliente_id, payload.cliente_ids)
     return {"message": "Clientes asociados correctamente"}
+
+@router.post("/admin/validar-password", tags=["Admin API"], dependencies=[Depends(verificar_admin_key)],
+    summary="Validar criterios de contraseña",
+    description="Valida si una contraseña cumple con los criterios de seguridad establecidos.")
+def validar_password(
+    data: ValidarPasswordRequest
+):
+    """
+    Valida una contraseña según los criterios de seguridad:
+    - Mínimo 8 caracteres
+    - Al menos una letra minúscula
+    - Al menos una letra mayúscula  
+    - Al menos un número
+    - Al menos un carácter especial
+    """
+    validacion = validar_password_criterios(data.password)
+    
+    return {
+        "valida": validacion["valida"],
+        "mensaje": "Contraseña válida" if validacion["valida"] else "Contraseña no cumple con los criterios",
+        "errores": validacion["errores"],
+        "criterios": {
+            "longitud_minima": 8,
+            "requiere_minuscula": True,
+            "requiere_mayuscula": True,
+            "requiere_numero": True,
+            "requiere_caracter_especial": True,
+            "caracteres_especiales_permitidos": "!@#$%^&*(),.?\":{}|<>"
+        }
+    }

@@ -200,6 +200,20 @@ elif temporalidad == "mitemporalidad":
 
 ---
 
+## 🤖 Documentación para Claude Code
+
+Este proyecto incluye un archivo `CLAUDE.md` que proporciona contexto y comandos útiles para instancias de Claude Code que trabajen en este repositorio. Incluye:
+
+- Comandos de desarrollo y Docker
+- Arquitectura y patrones de diseño
+- Sistema de generación de calendarios
+- Configuración de autenticación y SSO
+- Estrategias de testing
+
+Consulta `CLAUDE.md` para información detallada sobre el desarrollo en este proyecto.
+
+---
+
 ## ✅ Buenas Prácticas Aplicadas
 
 - Arquitectura hexagonal limpia
@@ -210,9 +224,9 @@ elif temporalidad == "mitemporalidad":
 ---
 
 
-# 🔐 Autenticación API por API Key + JWT + Refresh Token
+# 🔐 Autenticación API por API Key + JWT + Refresh Token + SSO
 
-Este proyecto implementa un sistema de autenticación simple y seguro basado en creación de clientes API, generación de claves y uso de JWTs para acceder a rutas protegidas.
+Este proyecto implementa un sistema de autenticación simple y seguro basado en creación de clientes API, generación de claves y uso de JWTs para acceder a rutas protegidas. Además, incluye soporte para **Single Sign-On (SSO)** con Microsoft Azure AD para usuarios de ATISA.
 
 ---
 
@@ -222,12 +236,13 @@ Este proyecto implementa un sistema de autenticación simple y seguro basado en 
 `POST /admin/api-clientes`
 
 **Headers:**
-- `x-admin-key: <CLAVE_SECRETA_ADMIN>`
+- `X-Admin-API-Key: <CLAVE_SECRETA_ADMIN>`
 
 **Body (JSON):**
 ```json
 {
-  "nombre_cliente": "cliente_demo"
+  "nombre_cliente": "cliente_demo",
+  "password": "MiPassword123!"  // Opcional - si no se envía, se genera automáticamente
 }
 ```
 
@@ -235,13 +250,48 @@ Este proyecto implementa un sistema de autenticación simple y seguro basado en 
 ```json
 {
   "mensaje": "Cliente creado",
-  "api_key": "KZURpV7R2Fn0L3DKGk8vdHjZyNqUs9kEIxDdSytaz",
-  "cliente": "cliente_demo"
+  "api_key": "MiPassword123!",
+  "cliente": "cliente_demo",
+  "password_personalizada": true
 }
 ```
 
 ⚠️ **IMPORTANTE:** La `api_key` se muestra **una sola vez**.  
 Esta clave sirve como contraseña del cliente. No se almacena en texto plano en la base de datos.
+
+### 🔒 Validación de contraseñas
+
+**Endpoint:**  
+`POST /admin/validar-password`
+
+**Headers:**
+- `X-Admin-API-Key: <CLAVE_SECRETA_ADMIN>`
+
+**Body (JSON):**
+```json
+{
+  "password": "contraseña_a_validar"
+}
+```
+
+**Respuesta:**
+```json
+{
+  "valida": false,
+  "mensaje": "Contraseña no cumple con los criterios",
+  "errores": [
+    "La contraseña debe tener al menos 8 caracteres",
+    "La contraseña debe contener al menos una letra mayúscula"
+  ],
+  "criterios": {
+    "longitud_minima": 8,
+    "requiere_minuscula": true,
+    "requiere_mayuscula": true,
+    "requiere_numero": true,
+    "requiere_caracter_especial": true
+  }
+}
+```
 
 ---
 
@@ -362,4 +412,73 @@ docker compose logs -f
 
 # Detener y eliminar los servicios, contenedores, redes y volúmenes
 docker compose down --volumes --remove-orphans
+
+---
+
+## 🔑 Single Sign-On (SSO) con Microsoft Azure AD
+
+### 📋 Configuración requerida
+
+Para habilitar SSO, añade estas variables al archivo `.env`:
+
+```bash
+# Credenciales de Azure AD
+CLIENT_ID=tu-application-id
+CLIENT_SECRET=tu-client-secret
+TENANT_ID=tu-tenant-id
+REDIRECT_URI=http://localhost:8000/sso/callback
+```
+
+### 🔄 Flujo de autenticación SSO
+
+#### 1️⃣ Iniciar proceso SSO
+```http
+GET /sso/login
+```
+
+**Respuesta:**
+```json
+{
+  "auth_url": "https://login.microsoftonline.com/{tenant}/oauth2/v2.0/authorize?...",
+  "message": "Redirige al usuario a esta URL para completar la autenticación"
+}
+```
+
+#### 2️⃣ Callback después de autenticación
+```http
+GET /sso/callback?code={codigo_de_azure}
+```
+
+**Respuesta:**
+```json
+{
+  "access_token": "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9...",
+  "refresh_token": "eyJ0eXAiOiJKV1QiLCJhbGciOiJIUzI1NiJ9...",
+  "token_type": "bearer",
+  "user_info": {
+    "username": "Juan Pérez",
+    "email": "juan.perez@atisa.es",
+    "id_api_cliente": 1,
+    "atisa": true,
+    "rol": "admin"
+  }
+}
+```
+
+### 🏢 Usuarios permitidos
+
+El SSO solo permite usuarios con dominios de ATISA:
+- `@atisa.es`
+- `@atisa-grupo.com`
+
+Los usuarios SSO se asignan automáticamente a `id_api_cliente=1` con rol `admin`.
+
+### ⚠️ SSO opcional
+
+Si las credenciales SSO no están configuradas:
+- La aplicación funciona normalmente
+- Los endpoints SSO devuelven HTTP 503
+- Solo están disponibles los métodos de autenticación tradicionales
+
+---
 

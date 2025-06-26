@@ -1,5 +1,6 @@
 from datetime import datetime, timedelta
-from typing import Optional
+from typing import Optional, Dict, List
+import re
 
 from jose import JWTError, jwt
 from passlib.context import CryptContext
@@ -50,10 +51,11 @@ def get_current_user(token: str = Depends(oauth2_scheme)) -> dict:
         if username is None:
             raise credentials_exception
         return {
-                "username": username,
+                "username": payload.get("username", username),  # Prioriza el username explícito del SSO
+                "email": payload.get("email"),
                 "id_api_cliente": payload.get("id_api_cliente"),
-                "atisa": payload.get("atisa"),
-                "rol": payload.get("rol")  # por si lo metes más adelante
+                "atisa": payload.get("atisa", False),
+                "rol": payload.get("rol")
             }
     except JWTError:
         raise credentials_exception
@@ -63,4 +65,40 @@ def create_refresh_token(data: dict, expires_delta: Optional[timedelta] = None) 
     expire = datetime.utcnow() + (expires_delta or timedelta(days=1))
     to_encode.update({"exp": expire})
     return jwt.encode(to_encode, SECRET_KEY, algorithm=ALGORITHM)
+
+
+def validar_password_criterios(password: str) -> Dict[str, any]:
+    """
+    Valida una contraseña según criterios de seguridad.
     
+    Criterios:
+    - Mínimo 8 caracteres
+    - Al menos una letra minúscula
+    - Al menos una letra mayúscula
+    - Al menos un número
+    - Al menos un carácter especial
+    
+    Returns:
+        Dict con 'valida' (bool) y 'errores' (List[str])
+    """
+    errores = []
+    
+    if len(password) < 8:
+        errores.append("La contraseña debe tener al menos 8 caracteres")
+    
+    if not re.search(r'[a-z]', password):
+        errores.append("La contraseña debe contener al menos una letra minúscula")
+    
+    if not re.search(r'[A-Z]', password):
+        errores.append("La contraseña debe contener al menos una letra mayúscula")
+    
+    if not re.search(r'\d', password):
+        errores.append("La contraseña debe contener al menos un número")
+    
+    if not re.search(r'[!@#$%^&*(),.?":{}|<>]', password):
+        errores.append("La contraseña debe contener al menos un carácter especial (!@#$%^&*(),.?\":{}|<>)")
+    
+    return {
+        "valida": len(errores) == 0,
+        "errores": errores
+    }

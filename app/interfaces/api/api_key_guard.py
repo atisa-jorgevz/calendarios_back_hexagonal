@@ -19,7 +19,7 @@ def verificar_api_key(request: Request, db: Session = Depends(get_db)):
     if not auth_service.validar_api_key(x_api_key):
         raise HTTPException(status_code=401, detail="API Key inválida o no autorizada")
 
-def verificar_admin_key(x_admin_key: str = Header(..., description="Clave de administración interna")):
+def verificar_admin_key(x_admin_api_key: str = Header(..., description="Clave de administración interna")):
     
-    if x_admin_key != settings.SECRET_KEY:
+    if x_admin_api_key != settings.ADMIN_API_KEY:
         raise HTTPException(status_code=403, detail="No autorizado como administrador")

@@ -1,6 +1,7 @@
 # Ignorar archivos de entorno
 .env
-
+.claude/
+CLAUDE.md
 # Ignorar archivos de Python compilados
 __pycache__/
 *.py[cod]
