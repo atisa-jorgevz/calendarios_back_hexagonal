@@ -38,3 +38,7 @@ class ClienteRepositorySQL(ClienteRepository):
             pais=modelo.pais,
             cif_factura=modelo.cif_factura,
         )
+    
+    def obtener_por_id(self, id: int) -> Optional[Cliente]:
+        registro = self.session.query(ClienteModel).filter_by(idcliente=id).first()
+        return self._mapear_modelo_a_entidad(registro) if registro else None

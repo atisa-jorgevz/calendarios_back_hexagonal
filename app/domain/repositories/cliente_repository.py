@@ -15,3 +15,8 @@ class ClienteRepository(ABC):
     @abstractmethod
     def buscar_por_cif(self, cif: str) -> Optional[Cliente]:
         pass
+
+    @abstractmethod
+    def obtener_por_id(self, id: int) -> Optional[Cliente]:
+        """Obtiene un cliente por su ID"""
+        pass

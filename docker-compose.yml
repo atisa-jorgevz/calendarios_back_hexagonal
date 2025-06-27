@@ -12,6 +12,7 @@ services:
       - "8011:8000"
     volumes:
       - ./app:/code/app
+      - /documentos:/documentos
     env_file:
       - .env
     #command: >

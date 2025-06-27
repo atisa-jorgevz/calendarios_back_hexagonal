@@ -7,3 +7,5 @@ class DocumentoModel(Base):
     id = Column(Integer, primary_key=True, index=True)
     id_cliente_proceso_hito = Column(Integer, ForeignKey("cliente_proceso_hito.id"), nullable=False)
     nombre_documento = Column(String(255), nullable=False)
+    original_file_name = Column(String(255), nullable=False)
+    stored_file_name = Column(String(255), nullable=False)
