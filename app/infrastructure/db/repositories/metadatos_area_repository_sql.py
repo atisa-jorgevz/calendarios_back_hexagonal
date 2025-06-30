@@ -3,6 +3,7 @@ from sqlalchemy.orm import Session
 from app.domain.entities.metadatos_area import MetadatosArea
 from app.domain.repositories.metadatos_area_repository import MetadatosAreaRepository
 from app.infrastructure.db.models.metadatos_area_model import MetadatosAreaModel
+from app.infrastructure.mappers.metadatos_area_mapper import MetadatosAreaMapper
 
 class SQLMetadatosAreaRepository(MetadatosAreaRepository):
     def __init__(self, session: Session):
@@ -35,3 +36,13 @@ class SQLMetadatosAreaRepository(MetadatosAreaRepository):
             id_metadato=m.id_metadato,
             codigo_ceco=m.codigo_ceco
         )
+
+    def get_by_codigo_ceco_list(self, codigos_ceco: List[str]) -> List[MetadatosArea]:
+        if not codigos_ceco:
+            return []
+
+        rows = self.db.query(MetadatosAreaModel).filter(
+            MetadatosAreaModel.codigo_ceco.in_(codigos_ceco)
+        ).all()
+
+        return [MetadatosAreaMapper.to_entity(row) for row in rows]

@@ -21,3 +21,11 @@ class MetadatoUpdate(BaseModel):
     global_: int = Field(..., alias="global")
     activo: int = 1
 
+class MetadatoOut(BaseModel):
+    id: int
+    nombre: str
+    descripcion: str
+    tipo_generacion: str
+    global_: int
+    activo: int
+

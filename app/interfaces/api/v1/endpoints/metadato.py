@@ -1,9 +1,12 @@
-from fastapi import APIRouter, Depends, HTTPException
+from fastapi import APIRouter, Depends, HTTPException, Query
 from sqlalchemy.orm import Session
 from app.interfaces.schemas.metadato import MetadatoCreate, MetadatoRead, MetadatoUpdate
 from app.infrastructure.db.database import SessionLocal
 from app.domain.entities.metadato import Metadato
 from app.infrastructure.db.repositories.metadato_repositoy_sql import SQLMetadatoRepository
+from app.infrastructure.db.repositories.metadatos_area_repository_sql import SQLMetadatosAreaRepository
+from app.application.use_cases.metadato.obtener_metadatos_visibles import ObtenerMetadatosVisibles
+from app.infrastructure.services.empleado_ceco_provider import EmpleadoCecoProvider
 
 router = APIRouter(prefix="/metadatos", tags=["Metadatos"])
 
@@ -48,7 +51,17 @@ def actualizar_metadato(
     )
     return repo.update(metadato_id, metadato)
 
-
 @router.delete("/{metadato_id}", status_code=204)
 def eliminar_metadato(metadato_id: int, repo = Depends(get_repo)):    
     repo.delete(metadato_id)
+
+@router.get("/visibles/", response_model=list[MetadatoRead])
+def obtener_metadatos_visibles(
+    email: str = Query(...),
+    db: Session = Depends(get_db)
+):
+    metadato_repo = SQLMetadatoRepository(db)
+    area_repo = SQLMetadatosAreaRepository(db)
+    ceco_provider = EmpleadoCecoProvider(db)
+    use_case = ObtenerMetadatosVisibles(metadato_repo, area_repo, ceco_provider)
+    return use_case.execute(email)

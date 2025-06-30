@@ -15,3 +15,7 @@ class MetadatosAreaRepository(ABC):
 
     @abstractmethod
     def delete(self, id: int) -> None: pass
+
+    @abstractmethod
+    def get_by_codigo_ceco_list(self, codigos_ceco: List[str]) -> List[MetadatosArea]:
+        pass

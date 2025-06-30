@@ -24,9 +24,11 @@ from app.interfaces.api.v1.endpoints import (
     admin_api_cliente,
     metadato,
     metadatos_area,
-    documento,  # ← aquí añadimos el router de documentos
-    metricas,   # ← router de métricas
+    documento,
+    documento_metadato,
+    metricas,
 )
+
 
 # Orígenes permitidos para CORS
 origins = [
@@ -68,8 +70,16 @@ app.include_router(plantilla_proceso.router,    dependencies=[Depends(get_curren
 app.include_router(proceso_hito_maestro.router, dependencies=[Depends(get_current_user)])
 app.include_router(metadato.router,             dependencies=[Depends(get_current_user)])
 app.include_router(metadatos_area.router,       dependencies=[Depends(get_current_user)])
-app.include_router(documento.router,            dependencies=[Depends(get_current_user)])  # CRUD docs
-app.include_router(metricas.router,             prefix="/api/metricas", tags=["Métricas"], dependencies=[Depends(get_current_user)])
+app.include_router(documento.router, dependencies=[Depends(get_current_user)])
+app.include_router(documento_metadato.router, dependencies=[Depends(get_current_user)])
+app.include_router(metadatos_area.router, dependencies=[Depends(get_current_user)])
+app.include_router(
+    metricas.router,
+    prefix="/api/metricas",
+    tags=["Métricas"],
+    dependencies=[Depends(get_current_user)],
+)
+
 
 # --- Health check opcional ---
 @app.get("/health", tags=["Status"])

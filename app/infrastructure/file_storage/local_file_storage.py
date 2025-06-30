@@ -10,15 +10,7 @@ class LocalFileStorage(DocumentStoragePort):
         cif = cif.strip()
         dir_path = os.path.join(self.root, cif)
         
-        print(f"[DEBUG] Ruta raíz: {self.root}")
-        print(f"[DEBUG] CIF recibido: {cif}")
-        print(f"[DEBUG] Directorio final a crear: {dir_path}")
-
-        try:
-            os.makedirs(dir_path, exist_ok=True)
-            print(f"[DEBUG] Directorio creado o ya existente: {dir_path}")
-        except Exception as e:
-            print(f"[ERROR] Fallo al crear directorio: {e}")
+        os.makedirs(dir_path, exist_ok=True)
 
         file_path = os.path.join(dir_path, filename)
         with open(file_path, "wb") as f:
