@@ -28,18 +28,44 @@ def crear(data: dict = Body(..., example={"nombre": "Plantilla Fiscal", "descrip
         nombre=data.get("nombre"),
         descripcion=data.get("descripcion"),
     )
-    return repo.crear(plantilla)
+    return repo.guardar(plantilla)
 
 # Listar todos los plantillas
 @router.get("/plantillas")
 def listar(
     page: Optional[int] = Query(None, ge=1, description="Página actual"),
     limit: Optional[int] = Query(None, ge=1, le=100, description="Cantidad de resultados por página"),
+    sort_field: Optional[str] = Query(None, description="Campo por el cual ordenar"),
+    sort_direction: Optional[str] = Query("asc", regex="^(asc|desc)$", description="Dirección de ordenación: asc o desc"),
     repo = Depends(get_repo)
 ):
     plantillas = repo.listar()
     total = len(plantillas)
 
+    # Aplicar ordenación si se especifica
+    if sort_field and hasattr(plantillas[0] if plantillas else None, sort_field):
+        reverse = sort_direction == "desc"
+
+        # Función de ordenación que maneja valores None
+        def sort_key(plantilla):
+            value = getattr(plantilla, sort_field, None)
+            if value is None:
+                return ""  # Los valores None van al final
+
+            # Manejo especial para diferentes tipos de campos
+            if sort_field == "id":
+                try:
+                    return int(value)
+                except (ValueError, TypeError):
+                    return 0
+            else:
+                # Para campos de texto (nombre, descripcion), convertir a minúsculas
+                # para ordenación insensible a mayúsculas
+                return str(value).lower()
+
+        plantillas.sort(key=sort_key, reverse=reverse)
+
+    # Aplicar paginación después de ordenar
     if page is not None and limit is not None:
         start = (page - 1) * limit
         end = start + limit

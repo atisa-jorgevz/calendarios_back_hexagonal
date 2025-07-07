@@ -41,16 +41,53 @@ def crear(
 def listar(
     page: Optional[int] = Query(None, ge=1, description="Página actual"),
     limit: Optional[int] = Query(None, ge=1, le=100, description="Cantidad de resultados por página"),
+    sort_field: Optional[str] = Query(None, description="Campo por el cual ordenar"),
+    sort_direction: Optional[str] = Query("asc", regex="^(asc|desc)$", description="Dirección de ordenación: asc o desc"),
     repo = Depends(get_repo)
 ):
     procesos = repo.listar()
     total = len(procesos)
 
+    # Aplicar ordenación si se especifica
+    if sort_field and hasattr(procesos[0] if procesos else None, sort_field):
+        reverse = sort_direction == "desc"
+
+        # Función de ordenación que maneja valores None
+        def sort_key(proceso):
+            value = getattr(proceso, sort_field, None)
+            if value is None:
+                return ""  # Los valores None van al final
+
+            # Manejo especial para diferentes tipos de campos
+            if sort_field in ["id", "frecuencia"]:
+                try:
+                    return int(value)
+                except (ValueError, TypeError):
+                    return 0
+            elif sort_field in ["fecha_inicio", "fecha_fin"]:
+                try:
+                    # Convertir fecha a timestamp para ordenación
+                    from datetime import datetime
+                    if isinstance(value, str):
+                        return datetime.fromisoformat(value.replace('Z', '+00:00')).timestamp()
+                    elif hasattr(value, 'timestamp'):
+                        return value.timestamp()
+                    else:
+                        return 0
+                except (ValueError, TypeError):
+                    return 0
+            else:
+                # Para campos de texto (nombre, descripcion, temporalidad),
+                # convertir a minúsculas para ordenación insensible a mayúsculas
+                return str(value).lower()
+
+        procesos.sort(key=sort_key, reverse=reverse)
+
+    # Aplicar paginación después de ordenar
     if page is not None and limit is not None:
         start = (page - 1) * limit
         end = start + limit
         procesos = procesos[start:end]
-
 
     if not procesos:
         raise HTTPException(status_code=404, detail="No se encontraron procesos")

@@ -54,6 +54,23 @@ def get(
         raise HTTPException(status_code=404, detail="No encontrado")
     return hito
 
+@router.put("/cliente-proceso-hitos/{id}", tags=["ClienteProcesoHito"], summary="Actualizar relación cliente-proceso-hito",
+    description="Actualiza una relación cliente-proceso-hito existente por su ID.")
+def actualizar(
+    id: int = Path(..., description="ID de la relación a actualizar"),
+    data: dict = Body(..., example={
+        "estado": "completado",
+        "fecha_inicio": "2023-01-01",
+        "fecha_fin": "2023-01-05",
+        "fecha_estado": "2023-01-05"
+    }),
+    repo = Depends(get_repo)
+):
+    hito_actualizado = repo.actualizar(id, data)
+    if not hito_actualizado:
+        raise HTTPException(status_code=404, detail="No encontrado")
+    return hito_actualizado
+
 @router.delete("/cliente-proceso-hitos/{id}", tags=["ClienteProcesoHito"], summary="Eliminar relación",
     description="Elimina una relación cliente-proceso-hito existente por su ID.")
 def delete(
@@ -71,7 +88,7 @@ def get_hitos_por_proceso(
     id_cliente_proceso: int = Path(..., description="ID del proceso de cliente"),
     repo = Depends(get_repo)
 ):
-    hitos = repo.obtener_por_cliente_proceso_id(id_cliente_proceso, repo)
+    hitos = repo.obtener_por_cliente_proceso_id(id_cliente_proceso)
     if not hitos:
         raise HTTPException(status_code=404, detail="No se encontraron hitos para este proceso")
     return hitos

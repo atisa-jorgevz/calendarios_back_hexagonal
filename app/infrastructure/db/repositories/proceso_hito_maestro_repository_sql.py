@@ -18,7 +18,7 @@ class ProcesoHitoMaestroRepositorySQL(ProcesoHitoMaestroRepository):
 
     def obtener_por_id(self, id: int):
         return self.session.query(ProcesoHitoMaestroModel).filter_by(id=id).first()
-    
+
     def eliminar(self, id: int):
         relacion = self.obtener_por_id(id)
         if not relacion:
@@ -29,3 +29,12 @@ class ProcesoHitoMaestroRepositorySQL(ProcesoHitoMaestroRepository):
 
     def listar_por_proceso(self, id_proceso: str):
         return self.session.query(ProcesoHitoMaestroModel).filter_by(id_proceso=id_proceso).all()
+
+    def eliminar_por_hito_id(self, hito_id: int):
+        """Elimina todos los registros de proceso_hito_maestro asociados a un hito específico"""
+        eliminados = self.session.query(ProcesoHitoMaestroModel).filter(
+            ProcesoHitoMaestroModel.id_hito == hito_id
+        ).delete(synchronize_session=False)
+
+        self.session.commit()
+        return eliminados

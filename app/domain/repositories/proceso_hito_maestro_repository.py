@@ -12,15 +12,17 @@ class ProcesoHitoMaestroRepository(ABC):
         pass
 
     @abstractmethod
-    def eliminar(self):
+    def eliminar(self, id: int):
         pass
 
     @abstractmethod
-    def obtener_por_id(self):
+    def obtener_por_id(self, id: int):
         pass
 
     @abstractmethod
-    def listar_por_proceso(self, id_proceso: str):        
+    def listar_por_proceso(self, id_proceso: str):
         pass
 
-    
+    @abstractmethod
+    def eliminar_por_hito_id(self, hito_id: int):
+        pass

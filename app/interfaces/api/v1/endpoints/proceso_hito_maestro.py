@@ -30,7 +30,7 @@ def crear(
         id_proceso=data["id_proceso"],
         id_hito=data["id_hito"]
     )
-    return repo.crear(relacion)
+    return repo.guardar(relacion)
 
 @router.get("/proceso-hitos", tags=["ProcesoHitoMaestro"], summary="Listar relaciones proceso-hito",
     description="Devuelve todas las relaciones entre procesos e hitos registradas.")

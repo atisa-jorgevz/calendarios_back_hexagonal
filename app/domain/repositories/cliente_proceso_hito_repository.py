@@ -22,3 +22,15 @@ class ClienteProcesoHitoRepository(ABC):
     @abstractmethod
     def obtener_por_cliente_proceso_id(self, cliente_proceso_id: int):
         pass
+
+    @abstractmethod
+    def actualizar(self, id: int, data: dict):
+        pass
+
+    @abstractmethod
+    def verificar_estado_finalizado_por_hito(self, hito_id: int):
+        pass
+
+    @abstractmethod
+    def eliminar_por_hito_id(self, hito_id: int):
+        pass

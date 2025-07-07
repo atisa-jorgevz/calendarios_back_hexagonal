@@ -3,6 +3,8 @@ from fastapi import APIRouter, Depends, HTTPException, Query, Path, Body
 from sqlalchemy.orm import Session
 from app.infrastructure.db.database import SessionLocal
 from app.infrastructure.db.repositories.hito_repository_sql import HitoRepositorySQL
+from app.infrastructure.db.repositories.cliente_proceso_hito_repository_sql import ClienteProcesoHitoRepositorySQL
+from app.infrastructure.db.repositories.proceso_hito_maestro_repository_sql import ProcesoHitoMaestroRepositorySQL
 
 from app.domain.entities.hito import Hito
 from app.application.use_cases.hitos.update_hito import actualizar_hito
@@ -18,6 +20,12 @@ def get_db():
 
 def get_repo(db: Session = Depends(get_db)):
     return HitoRepositorySQL(db)
+
+def get_repo_cliente_proceso_hito(db: Session = Depends(get_db)):
+    return ClienteProcesoHitoRepositorySQL(db)
+
+def get_repo_proceso_hito_maestro(db: Session = Depends(get_db)):
+    return ProcesoHitoMaestroRepositorySQL(db)
 
 @router.post("/hitos", tags=["Hitos"], summary="Crear un nuevo hito",
     description="Crea un nuevo hito especificando nombre, fechas y si es obligatorio.")
@@ -41,7 +49,7 @@ def crear(
         fecha_fin=data.get("fecha_fin"),
         obligatorio=data.get("obligatorio", False),
     )
-    return repo.guardar(hito)    
+    return repo.guardar(hito)
 
 @router.get("/hitos/hitos-cliente-por-empleado", tags=["Hitos"], summary="Listar hitos por cliente/empleado",
     description="Devuelve todos los hitos asociados a los procesos de clientes gestionados por un empleado. Filtrable por fecha de inicio, fin, mes y año.")
@@ -53,7 +61,7 @@ def obtener_hitos_por_empleado(
     anio: Optional[int] = Query(None, ge=2000, le=2100, description="Año de inicio del hito"),
     repo = Depends(get_repo)
 ):
-    return repo.listar_hitos_cliente_por_empleado( 
+    return repo.listar_hitos_cliente_por_empleado(
         email= email,
         fecha_inicio=fecha_inicio,
         fecha_fin=fecha_fin,
@@ -66,11 +74,48 @@ def obtener_hitos_por_empleado(
 def listar(
     page: Optional[int] = Query(None, ge=1, description="Página actual"),
     limit: Optional[int] = Query(None, ge=1, le=100, description="Cantidad de resultados por página"),
+    sort_field: Optional[str] = Query(None, description="Campo por el cual ordenar"),
+    sort_direction: Optional[str] = Query("asc", regex="^(asc|desc)$", description="Dirección de ordenación: asc o desc"),
     repo = Depends(get_repo)
 ):
     hitos = repo.listar()
     total = len(hitos)
 
+    # Aplicar ordenación si se especifica
+    if sort_field and hasattr(hitos[0] if hitos else None, sort_field):
+        reverse = sort_direction == "desc"
+
+        # Función de ordenación que maneja valores None
+        def sort_key(hito):
+            value = getattr(hito, sort_field, None)
+            if value is None:
+                return ""  # Los valores None van al final
+
+            # Manejo especial para diferentes tipos de campos
+            if sort_field in ["id", "frecuencia", "obligatorio"]:
+                try:
+                    return int(value)
+                except (ValueError, TypeError):
+                    return 0
+            elif sort_field in ["fecha_inicio", "fecha_fin"]:
+                try:
+                    # Convertir fecha a timestamp para ordenación
+                    from datetime import datetime
+                    if isinstance(value, str):
+                        return datetime.fromisoformat(value.replace('Z', '+00:00')).timestamp()
+                    elif hasattr(value, 'timestamp'):
+                        return value.timestamp()
+                    else:
+                        return 0
+                except (ValueError, TypeError):
+                    return 0
+            else:
+                # Para campos de texto, convertir a minúsculas para ordenación insensible a mayúsculas
+                return str(value).lower()
+
+        hitos.sort(key=sort_key, reverse=reverse)
+
+    # Aplicar paginación después de ordenar
     if page is not None and limit is not None:
         start = (page - 1) * limit
         end = start + limit
@@ -115,12 +160,51 @@ def update(
     return actualizado
 
 @router.delete("/hitos/{id}", tags=["Hitos"], summary="Eliminar hito",
-    description="Elimina un hito por su ID.")
+    description="Elimina un hito por su ID. Verifica que no existan registros finalizados antes de eliminar.")
 def delete_hito(
     id: int = Path(..., description="ID del hito a eliminar"),
-    repo = Depends(get_repo)
+    repo = Depends(get_repo),
+    repo_cliente_proceso_hito = Depends(get_repo_cliente_proceso_hito),
+    repo_proceso_hito_maestro = Depends(get_repo_proceso_hito_maestro)
 ):
-    resultado = repo.eliminar(id)
-    if not resultado:
-        raise HTTPException(status_code=404, detail="Hito no encontrado")
-    return {"mensaje": "Hito eliminado"}
+    try:
+        # Verificar que el hito existe
+        hito = repo.obtener_por_id(id)
+        if not hito:
+            raise HTTPException(status_code=404, detail="Hito no encontrado")
+
+        # Verificar si hay registros con estado "Finalizado" en cliente_proceso_hito
+        tiene_finalizados = repo_cliente_proceso_hito.verificar_estado_finalizado_por_hito(id)
+        if tiene_finalizados:
+            raise HTTPException(
+                status_code=409,
+                detail="No se puede eliminar el hito porque ha sido realizado en un cliente."
+            )
+
+        # Proceder con el borrado en cascada
+        # 1. Eliminar registros de cliente_proceso_hito
+        eliminados_cph = repo_cliente_proceso_hito.eliminar_por_hito_id(id)
+
+        # 2. Eliminar registros de proceso_hito_maestro
+        eliminados_phm = repo_proceso_hito_maestro.eliminar_por_hito_id(id)
+
+        # 3. Eliminar el hito
+        resultado = repo.eliminar(id)
+        if not resultado:
+            raise HTTPException(status_code=500, detail="Error al eliminar el hito")
+
+        return {
+            "mensaje": "Hito eliminado correctamente",
+            "detalles": {
+                "hito_id": id,
+                "registros_cliente_proceso_hito_eliminados": eliminados_cph,
+                "registros_proceso_hito_maestro_eliminados": eliminados_phm
+            }
+        }
+
+    except HTTPException:
+        # Re-lanzar las excepciones HTTP ya manejadas
+        raise
+    except Exception as e:
+        # Manejar errores inesperados
+        raise HTTPException(status_code=500, detail=f"Error interno del servidor: {str(e)}")
