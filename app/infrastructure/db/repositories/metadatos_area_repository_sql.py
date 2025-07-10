@@ -30,6 +30,12 @@ class SQLMetadatosAreaRepository(MetadatosAreaRepository):
         self.session.query(MetadatosAreaModel).filter_by(id=id).delete()
         self.session.commit()
 
+    def delete_by_metadato_id(self, id_metadato: int) -> int:
+        count = self.session.query(MetadatosAreaModel).filter_by(id_metadato=id_metadato).count()
+        self.session.query(MetadatosAreaModel).filter_by(id_metadato=id_metadato).delete()
+        self.session.commit()
+        return count
+
     def _to_entity(self, m: MetadatosAreaModel) -> MetadatosArea:
         return MetadatosArea(
             id=m.id,

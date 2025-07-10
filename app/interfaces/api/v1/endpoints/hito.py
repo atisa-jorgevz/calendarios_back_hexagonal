@@ -81,36 +81,43 @@ def listar(
     hitos = repo.listar()
     total = len(hitos)
 
-    # Aplicar ordenación si se especifica
-    if sort_field and hasattr(hitos[0] if hitos else None, sort_field):
+    # Aplicar ordenación si se especifica y hay datos para ordenar
+    if sort_field and hitos and hasattr(hitos[0], sort_field):
         reverse = sort_direction == "desc"
 
         # Función de ordenación que maneja valores None
         def sort_key(hito):
             value = getattr(hito, sort_field, None)
-            if value is None:
-                return ""  # Los valores None van al final
 
             # Manejo especial para diferentes tipos de campos
             if sort_field in ["id", "frecuencia", "obligatorio"]:
+                if value is None:
+                    return -1 if not reverse else float('inf')  # None al inicio en asc, al final en desc
                 try:
                     return int(value)
                 except (ValueError, TypeError):
-                    return 0
+                    return -1 if not reverse else float('inf')
+
             elif sort_field in ["fecha_inicio", "fecha_fin"]:
+                if value is None:
+                    return -1 if not reverse else float('inf')  # None al inicio en asc, al final en desc
                 try:
                     # Convertir fecha a timestamp para ordenación
-                    from datetime import datetime
+                    from datetime import datetime, date
                     if isinstance(value, str):
                         return datetime.fromisoformat(value.replace('Z', '+00:00')).timestamp()
+                    elif isinstance(value, date):
+                        return datetime.combine(value, datetime.min.time()).timestamp()
                     elif hasattr(value, 'timestamp'):
                         return value.timestamp()
                     else:
-                        return 0
+                        return -1 if not reverse else float('inf')
                 except (ValueError, TypeError):
-                    return 0
+                    return -1 if not reverse else float('inf')
             else:
-                # Para campos de texto, convertir a minúsculas para ordenación insensible a mayúsculas
+                # Para campos de texto
+                if value is None:
+                    return ""  # Strings vacíos van al principio alfabéticamente
                 return str(value).lower()
 
         hitos.sort(key=sort_key, reverse=reverse)
@@ -121,9 +128,7 @@ def listar(
         end = start + limit
         hitos = hitos[start:end]
 
-    if not hitos:
-        raise HTTPException(status_code=404, detail="No se encontraron hitos")
-
+    # Devolver respuesta exitosa incluso si no hay hitos después de la paginación
     return {
         "total": total,
         "hitos": hitos

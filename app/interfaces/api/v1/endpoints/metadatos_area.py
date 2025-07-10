@@ -48,3 +48,8 @@ def crear(payload: MetadatosAreaCreate, repo: MetadatosAreaRepository = Depends(
 @router.delete("/{id}", status_code=204)
 def eliminar(id: int, repo: MetadatosAreaRepository = Depends(get_repo)):
     repo.delete(id)
+
+@router.delete("/metadato/{id_metadato}")
+def eliminar_por_metadato(id_metadato: int, repo: MetadatosAreaRepository = Depends(get_repo)):
+    count = repo.delete_by_metadato_id(id_metadato)
+    return {"message": f"Se eliminaron {count} registros con id_metadato {id_metadato}"}
