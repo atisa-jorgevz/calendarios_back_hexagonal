@@ -2,7 +2,7 @@ from typing import List
 from sqlalchemy.orm import Session
 from app.domain.entities.documento_metadato import DocumentoMetadato
 from app.domain.repositories.documento_metadato_repository import DocumentoMetadatoRepository
-from app.infrastructure.db.models.documento_metadato import DocumentoMetadatoModel
+from app.infrastructure.db.models.documento_metadato_model import DocumentoMetadatoModel
 from app.infrastructure.mappers.documento_metadato_mapper import DocumentoMetadatoMapper
 
 class SqlDocumentoMetadatoRepository(DocumentoMetadatoRepository):

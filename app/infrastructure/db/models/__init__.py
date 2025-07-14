@@ -5,3 +5,4 @@ from .plantilla_model import PlantillaModel
 from .plantilla_proceso_model import PlantillaProcesoModel
 from .cliente_proceso_model import ClienteProcesoModel
 from .cliente_proceso_hito_model import ClienteProcesoHitoModel
+from .cliente_proceso_hito_cumplimiento_model import ClienteProcesoHitoCumplimientoModel

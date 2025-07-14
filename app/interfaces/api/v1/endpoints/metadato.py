@@ -66,6 +66,17 @@ def listar_metadatos(
         "metadatos": metadatos
     }
 
+@router.get("/visibles", response_model=list[MetadatoRead])
+def obtener_metadatos_visibles(
+    email: str = Query(...),
+    db: Session = Depends(get_db)
+):
+    metadato_repo = SQLMetadatoRepository(db)
+    area_repo = SQLMetadatosAreaRepository(db)
+    ceco_provider = EmpleadoCecoProvider(db)
+    use_case = ObtenerMetadatosVisibles(metadato_repo, area_repo, ceco_provider)
+    return use_case.execute(email)
+
 @router.get("/{metadato_id}", response_model=MetadatoRead)
 def obtener_metadato(metadato_id: int, repo = Depends(get_repo)):
     result = repo.get_by_id(metadato_id)
@@ -96,14 +107,3 @@ def actualizar_metadato(
 @router.delete("/{metadato_id}", status_code=204)
 def eliminar_metadato(metadato_id: int, repo = Depends(get_repo)):
     repo.delete(metadato_id)
-
-@router.get("/visibles/", response_model=list[MetadatoRead])
-def obtener_metadatos_visibles(
-    email: str = Query(...),
-    db: Session = Depends(get_db)
-):
-    metadato_repo = SQLMetadatoRepository(db)
-    area_repo = SQLMetadatosAreaRepository(db)
-    ceco_provider = EmpleadoCecoProvider(db)
-    use_case = ObtenerMetadatosVisibles(metadato_repo, area_repo, ceco_provider)
-    return use_case.execute(email)

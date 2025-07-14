@@ -26,7 +26,9 @@ def crear(
         "estado": "pendiente",
         "fecha_inicio": "2023-01-01",
         "fecha_fin": "2023-01-05",
-        "fecha_estado": "2023-01-01"
+        "fecha_estado": "2023-01-01",
+        "hora_limite": "12:00:00",
+        "tipo": "Atisa"
     }),
     repo = Depends(get_repo)
 ):
@@ -34,7 +36,11 @@ def crear(
         cliente_proceso_id=data["cliente_proceso_id"],
         hito_id=data["hito_id"],
         estado=data["estado"],
-        fecha_estado=data.get("fecha_estado")
+        fecha_estado=data.get("fecha_estado"),
+        fecha_inicio=data["fecha_inicio"],
+        fecha_fin=data.get("fecha_fin"),
+        hora_limite=data.get("hora_limite"),
+        tipo=data["tipo"]
     )
     return repo.guardar(hito)
 

@@ -47,7 +47,7 @@ class SQLMetadatosAreaRepository(MetadatosAreaRepository):
         if not codigos_ceco:
             return []
 
-        rows = self.db.query(MetadatosAreaModel).filter(
+        rows = self.session.query(MetadatosAreaModel).filter(
             MetadatosAreaModel.codigo_ceco.in_(codigos_ceco)
         ).all()
 

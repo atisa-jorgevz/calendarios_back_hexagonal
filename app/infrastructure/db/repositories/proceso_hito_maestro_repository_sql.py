@@ -1,6 +1,7 @@
 from app.domain.entities.proceso_hito_maestro import ProcesoHitoMaestro
 from app.domain.repositories.proceso_hito_maestro_repository import ProcesoHitoMaestroRepository
 from app.infrastructure.db.models import ProcesoHitoMaestroModel
+from app.infrastructure.db.models import HitoModel
 
 class ProcesoHitoMaestroRepositorySQL(ProcesoHitoMaestroRepository):
     def __init__(self, session):
@@ -27,8 +28,11 @@ class ProcesoHitoMaestroRepositorySQL(ProcesoHitoMaestroRepository):
         self.session.commit()
         return True
 
-    def listar_por_proceso(self, id_proceso: str):
-        return self.session.query(ProcesoHitoMaestroModel).filter_by(id_proceso=id_proceso).all()
+    def listar_por_proceso(self, id_proceso: int):
+        # Hacer JOIN para obtener los datos completos del hito
+        return self.session.query(ProcesoHitoMaestroModel, HitoModel).join(
+            HitoModel, ProcesoHitoMaestroModel.id_hito == HitoModel.id
+        ).filter(ProcesoHitoMaestroModel.id_proceso == id_proceso).all()
 
     def eliminar_por_hito_id(self, hito_id: int):
         """Elimina todos los registros de proceso_hito_maestro asociados a un hito específico"""

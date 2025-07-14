@@ -1,5 +1,5 @@
 from app.domain.entities.documento_metadato import DocumentoMetadato
-from app.infrastructure.db.models.documento_metadato import DocumentoMetadatoModel
+from app.infrastructure.db.models.documento_metadato_model import DocumentoMetadatoModel
 
 class DocumentoMetadatoMapper:
 

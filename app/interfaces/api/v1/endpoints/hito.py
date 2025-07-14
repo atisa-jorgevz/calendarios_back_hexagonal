@@ -36,10 +36,17 @@ def crear(
         "temporalidad": "mes",
         "fecha_inicio": "2023-01-01",
         "fecha_fin": "2023-01-05",
-        "obligatorio": 1
+        "hora_limite": "12:00:00",
+        "obligatorio": 1,
+        "tipo": "Atisa"
     }),
     repo = Depends(get_repo)
 ):
+
+    hora_limite = data["hora_limite"]
+    if len(hora_limite.split(":")) == 2:  # Si solo tiene HH:MM, agregar :00
+        hora_limite = hora_limite + ":00"
+
     hito = Hito(
         nombre=data.get("nombre"),
         descripcion=data.get("descripcion"),
@@ -47,7 +54,9 @@ def crear(
         temporalidad=data.get("temporalidad"),
         fecha_inicio=data.get("fecha_inicio"),
         fecha_fin=data.get("fecha_fin"),
+        hora_limite=hora_limite,
         obligatorio=data.get("obligatorio", False),
+        tipo=data.get("tipo")
     )
     return repo.guardar(hito)
 
