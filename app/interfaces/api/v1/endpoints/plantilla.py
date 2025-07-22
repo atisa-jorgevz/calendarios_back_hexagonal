@@ -22,7 +22,7 @@ def get_repo(db: Session = Depends(get_db)):
     return PlantillaRepositorySQL(db)
 
 # Crear un nuevo plantilla
-@router.post("/plantillas")
+@router.post("/plantillas", tags=["Plantillas"])
 def crear(data: dict = Body(..., example={"nombre": "Plantilla Fiscal", "descripcion": "Para procesos fiscales"}), repo = Depends(get_repo)):
     plantilla = Plantilla(
         nombre=data.get("nombre"),
@@ -31,7 +31,7 @@ def crear(data: dict = Body(..., example={"nombre": "Plantilla Fiscal", "descrip
     return repo.guardar(plantilla)
 
 # Listar todos los plantillas
-@router.get("/plantillas")
+@router.get("/plantillas", tags=["Plantillas"])
 def listar(
     page: Optional[int] = Query(None, ge=1, description="Página actual"),
     limit: Optional[int] = Query(None, ge=1, le=100, description="Cantidad de resultados por página"),
@@ -94,7 +94,7 @@ def get_plantilla(id: int, repo = Depends(get_repo)):
     return plantilla
 
 # Actualizar un plantilla
-@router.put("/plantillas/{id}")
+@router.put("/plantillas/{id}", tags=["Plantillas"])
 def update(id: int, data: dict, repo = Depends(get_repo)):
     actualizado = actualizar_plantilla(id, data, repo)
     if not actualizado:
@@ -102,7 +102,7 @@ def update(id: int, data: dict, repo = Depends(get_repo)):
     return actualizado
 
 # Eliminar un plantilla
-@router.delete("/plantillas/{id}")
+@router.delete("/plantillas/{id}", tags=["Plantillas"])
 def delete_plantilla(id: int, repo = Depends(get_repo)):
     resultado = repo.eliminar(id)
     if not resultado:

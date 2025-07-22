@@ -7,7 +7,7 @@ from .base_generador import GeneradorTemporalidad
 class GeneradorSemanal(GeneradorTemporalidad):
     def generar(self, data, proceso_maestro: Proceso, repo: ClienteProcesoRepository) -> dict:
         procesos_creados = []
-        frecuencia = int(proceso_maestro.frecuencia)
+        frecuencia = 1
         fecha_actual = data.fecha_inicio
         anio = fecha_actual.year
 

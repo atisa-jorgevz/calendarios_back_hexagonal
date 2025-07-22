@@ -18,4 +18,6 @@ class ClienteProcesoHitoModel(Base):
     tipo = Column(String(255), nullable=False)
 
     cliente_proceso = relationship("ClienteProcesoModel", backref="hitos_cliente")
-    hito = relationship("ProcesoHitoMaestroModel", backref="clientes_hito")
+    hito = relationship("ProcesoHitoMaestroModel",
+                       foreign_keys=[hito_id],
+                       primaryjoin="ClienteProcesoHitoModel.hito_id == ProcesoHitoMaestroModel.id_hito")

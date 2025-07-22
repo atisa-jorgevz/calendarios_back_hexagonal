@@ -7,8 +7,6 @@ class HitoModel(Base):
 
     id = Column(Integer, primary_key=True, index=True)
     nombre = Column(String(255), nullable=False)
-    frecuencia = Column(Integer, nullable=False)
-    temporalidad = Column(String(50), nullable=False)
     fecha_inicio = Column(Date, nullable=False)
     fecha_fin = Column(Date, nullable=True)
     hora_limite = Column(Time, nullable=True)

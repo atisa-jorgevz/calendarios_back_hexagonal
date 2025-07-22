@@ -32,8 +32,6 @@ def get_repo_proceso_hito_maestro(db: Session = Depends(get_db)):
 def crear(
     data: dict = Body(..., example={
         "nombre": "Recibir documentos",
-        "frecuencia": 1,
-        "temporalidad": "mes",
         "fecha_inicio": "2023-01-01",
         "fecha_fin": "2023-01-05",
         "hora_limite": "12:00:00",
@@ -49,12 +47,10 @@ def crear(
 
     hito = Hito(
         nombre=data.get("nombre"),
-        descripcion=data.get("descripcion"),
-        frecuencia=data.get("frecuencia"),
-        temporalidad=data.get("temporalidad"),
         fecha_inicio=data.get("fecha_inicio"),
         fecha_fin=data.get("fecha_fin"),
         hora_limite=hora_limite,
+        descripcion=data.get("descripcion"),
         obligatorio=data.get("obligatorio", False),
         tipo=data.get("tipo")
     )
@@ -187,12 +183,12 @@ def delete_hito(
         if not hito:
             raise HTTPException(status_code=404, detail="Hito no encontrado")
 
-        # Verificar si hay registros con estado "Finalizado" en cliente_proceso_hito
-        tiene_finalizados = repo_cliente_proceso_hito.verificar_estado_finalizado_por_hito(id)
-        if tiene_finalizados:
+        # Verificar si hay registros en cliente_proceso_hito
+        tiene_registros = repo_cliente_proceso_hito.verificar_registros_por_hito(id)
+        if tiene_registros:
             raise HTTPException(
                 status_code=409,
-                detail="No se puede eliminar el hito porque ha sido realizado en un cliente."
+                detail="No se puede eliminar el hito porque tiene registros asociados en clientes."
             )
 
         # Proceder con el borrado en cascada

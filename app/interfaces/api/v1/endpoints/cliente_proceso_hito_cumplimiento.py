@@ -1,6 +1,7 @@
 from fastapi import APIRouter, Depends, HTTPException, Body, Path, Query
 from sqlalchemy.orm import Session
 from typing import Optional
+from datetime import datetime, date
 from app.infrastructure.db.database import SessionLocal
 from app.infrastructure.db.repositories.cliente_proceso_hito_cumplimiento_repository_sql import ClienteProcesoHitoCumplimientoRepositorySQL
 from app.infrastructure.db.repositories.cliente_proceso_hito_repository_sql import ClienteProcesoHitoRepositorySQL
@@ -117,6 +118,97 @@ def obtener(
     if not cumplimiento:
         raise HTTPException(status_code=404, detail="Cumplimiento no encontrado")
     return cumplimiento
+
+@router.get("/cliente-proceso-hito-cumplimientos/cliente-proceso-hito/{id}", tags=["ClienteProcesoHitoCumplimiento"], summary="Obtener cumplimiento por ID de cliente_proceso_hito",
+    description="Devuelve registros de cumplimiento de hito específicos según su ID de cliente_proceso_hito con soporte para paginación y ordenación.")
+def obtener_por_cliente_proceso_hito(
+    id: int = Path(..., description="ID de cliente_proceso_hito a consultar"),
+    page: Optional[int] = Query(None, ge=1, description="Página actual"),
+    limit: Optional[int] = Query(None, ge=1, le=100, description="Cantidad de resultados por página"),
+    sort_field: Optional[str] = Query(None, description="Campo por el cual ordenar (id, cliente_proceso_hito_id, fecha, hora, observacion, usuario)"),
+    sort_direction: Optional[str] = Query("asc", regex="^(asc|desc)$", description="Dirección de ordenación: asc o desc"),
+    repo = Depends(get_repo)
+):
+    try:
+        cumplimientos = repo.obtener_por_cliente_proceso_hito_id(id)
+
+        # Asegurar que cumplimientos es una lista
+        if cumplimientos is None:
+            cumplimientos = []
+        elif not isinstance(cumplimientos, list):
+            cumplimientos = [cumplimientos] if cumplimientos else []
+
+        total = len(cumplimientos)
+
+        # Aplicar ordenación si se especifica y hay datos para ordenar
+        if sort_field and cumplimientos:
+            # Verificar que el campo existe en el primer elemento
+            if hasattr(cumplimientos[0], sort_field):
+                reverse = sort_direction == "desc"
+
+                def sort_key(cumplimiento):
+                    value = getattr(cumplimiento, sort_field, None)
+
+                    # Manejo especial para campos numéricos
+                    if sort_field in ["id", "cliente_proceso_hito_id"]:
+                        try:
+                            return int(value) if value is not None else (-1 if not reverse else float('inf'))
+                        except (ValueError, TypeError):
+                            return -1 if not reverse else float('inf')
+
+                    # Manejo especial para fechas
+                    elif sort_field == "fecha":
+                        if value is None:
+                            return datetime.min if not reverse else datetime.max
+                        try:
+                            if isinstance(value, str):
+                                return datetime.fromisoformat(value.replace('Z', '+00:00'))
+                            elif isinstance(value, date):
+                                return datetime.combine(value, datetime.min.time())
+                            elif hasattr(value, 'timestamp'):
+                                return value
+                            else:
+                                return datetime.min if not reverse else datetime.max
+                        except (ValueError, TypeError):
+                            return datetime.min if not reverse else datetime.max
+
+                    # Manejo especial para horas
+                    elif sort_field == "hora":
+                        if value is None:
+                            return -1 if not reverse else float('inf')
+                        try:
+                            if isinstance(value, str):
+                                parts = value.split(':')
+                                hours = int(parts[0]) if len(parts) > 0 else 0
+                                minutes = int(parts[1]) if len(parts) > 1 else 0
+                                seconds = int(parts[2]) if len(parts) > 2 else 0
+                                return hours * 3600 + minutes * 60 + seconds
+                            else:
+                                return -1 if not reverse else float('inf')
+                        except (ValueError, TypeError, IndexError):
+                            return -1 if not reverse else float('inf')
+
+                    # Para campos de texto
+                    else:
+                        return str(value).lower() if value is not None else ""
+
+                cumplimientos.sort(key=sort_key, reverse=reverse)
+
+        # Aplicar paginación después de ordenar
+        if page is not None and limit is not None:
+            start = (page - 1) * limit
+            end = start + limit
+            cumplimientos = cumplimientos[start:end]
+
+        # Devolver respuesta exitosa incluso si no hay cumplimientos
+        return {
+            "total": total,
+            "cumplimientos": cumplimientos
+        }
+
+    except Exception as e:
+        # Manejar errores inesperados
+        raise HTTPException(status_code=500, detail=f"Error interno del servidor: {str(e)}")
 
 @router.put("/cliente-proceso-hito-cumplimientos/{id}", tags=["ClienteProcesoHitoCumplimiento"], summary="Actualizar cumplimiento",
     description="Actualiza un registro de cumplimiento de hito existente por su ID.")

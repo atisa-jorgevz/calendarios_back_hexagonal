@@ -42,17 +42,16 @@ class ClienteProcesoHitoRepositorySQL(ClienteProcesoHitoRepository):
         self.session.refresh(hito)
         return hito
 
-    def verificar_estado_finalizado_por_hito(self, hito_id: int):
-        """Verifica si existe algún registro con estado 'Finalizado' para un hito específico"""
+    def verificar_registros_por_hito(self, hito_id: int):
+        """Verifica si existe algún registro para un hito específico"""
         from app.infrastructure.db.models import ProcesoHitoMaestroModel
 
-        # Buscar registros en cliente_proceso_hito que referencien al hito a través de proceso_hito_maestro
+        # Buscar cualquier registro en cliente_proceso_hito que referencie al hito a través de proceso_hito_maestro
         resultado = self.session.query(ClienteProcesoHitoModel).join(
             ProcesoHitoMaestroModel,
             ClienteProcesoHitoModel.hito_id == ProcesoHitoMaestroModel.id_hito
         ).filter(
-            ProcesoHitoMaestroModel.id_hito == hito_id,
-            ClienteProcesoHitoModel.estado == "Finalizado"
+            ProcesoHitoMaestroModel.id_hito == hito_id
         ).first()
 
         return resultado is not None

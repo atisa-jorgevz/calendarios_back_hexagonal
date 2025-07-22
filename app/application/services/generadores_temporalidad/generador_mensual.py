@@ -8,7 +8,7 @@ from .base_generador import GeneradorTemporalidad
 class GeneradorMensual(GeneradorTemporalidad):
     def generar(self, data, proceso_maestro: Proceso, repo: ClienteProcesoRepository) -> dict:
         procesos_creados = []
-        frecuencia = int(proceso_maestro.frecuencia)
+        frecuencia = 1
         fecha_actual = data.fecha_inicio
         anio = fecha_actual.year
 
@@ -32,7 +32,7 @@ class GeneradorMensual(GeneradorTemporalidad):
                 anio=anio,
                 id_anterior=None
             )
-            
+
             procesos_creados.append(repo.guardar(cliente_proceso))
             if mes_inicio + frecuencia > 12:
                 break

@@ -28,7 +28,7 @@ class ClienteProcesoHitoRepository(ABC):
         pass
 
     @abstractmethod
-    def verificar_estado_finalizado_por_hito(self, hito_id: int):
+    def verificar_registros_por_hito(self, hito_id: int):
         pass
 
     @abstractmethod

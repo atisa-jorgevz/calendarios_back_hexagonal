@@ -23,3 +23,7 @@ class ClienteProcesoHitoCumplimientoRepository(ABC):
     @abstractmethod
     def eliminar(self, id: int):
         pass
+
+    @abstractmethod
+    def obtener_por_cliente_proceso_hito_id(self, cliente_proceso_hito_id: int):
+        pass

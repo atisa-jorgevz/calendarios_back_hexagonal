@@ -60,3 +60,9 @@ class ClienteProcesoHitoCumplimientoRepositorySQL(ClienteProcesoHitoCumplimiento
         self.session.delete(modelo)
         self.session.commit()
         return True
+
+    def obtener_por_cliente_proceso_hito_id(self, cliente_proceso_hito_id: int):
+        modelos = self.session.query(ClienteProcesoHitoCumplimientoModel).filter(
+            ClienteProcesoHitoCumplimientoModel.cliente_proceso_hito_id == cliente_proceso_hito_id
+        ).all()
+        return modelos

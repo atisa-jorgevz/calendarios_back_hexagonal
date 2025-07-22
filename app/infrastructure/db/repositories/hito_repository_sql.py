@@ -40,7 +40,7 @@ class HitoRepositorySQL(HitoRepository):
         self.session.delete(hito)
         self.session.commit()
         return True
-    
+
     def listar_hitos_cliente_por_empleado(self, email, fecha_inicio=None, fecha_fin=None, mes=None, anio=None):
         sql = construir_sql_hitos_cliente_por_empleado(
             filtrar_fecha=bool(fecha_inicio and fecha_fin),
