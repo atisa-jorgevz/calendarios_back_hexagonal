@@ -5,7 +5,7 @@ from app.infrastructure.db.repositories.proceso_hito_maestro_repository_sql impo
 from app.domain.entities.proceso_hito_maestro import ProcesoHitoMaestro
 
 
-router = APIRouter()
+router = APIRouter(prefix="/proceso-hitos", tags=["ProcesoHitoMaestro"])
 
 def get_db():
     db = SessionLocal()
@@ -17,7 +17,7 @@ def get_db():
 def get_repo(db: Session = Depends(get_db)):
     return ProcesoHitoMaestroRepositorySQL(db)
 
-@router.post("/proceso-hitos", tags=["ProcesoHitoMaestro"], summary="Crear relación proceso-hito",
+@router.post("/", summary="Crear relación proceso-hito",
     description="Crea una relación entre un proceso y un hito, especificando sus IDs.")
 def crear(
     data: dict = Body(..., example={
@@ -32,7 +32,7 @@ def crear(
     )
     return repo.guardar(relacion)
 
-@router.get("/proceso-hitos", tags=["ProcesoHitoMaestro"], summary="Listar relaciones proceso-hito",
+@router.get("/", summary="Listar relaciones proceso-hito",
     description="Devuelve todas las relaciones entre procesos e hitos registradas.")
 def listar(repo = Depends(get_repo)):
     return {
@@ -40,7 +40,7 @@ def listar(repo = Depends(get_repo)):
     }
 
 
-@router.delete("/proceso-hitos/{id}", tags=["ProcesoHitoMaestro"], summary="Eliminar relación proceso-hito",
+@router.delete("/{id}", summary="Eliminar relación proceso-hito",
     description="Elimina una relación entre un proceso y un hito por su ID.")
 def delete(
     id: int = Path(..., description="ID de la relación a eliminar"),

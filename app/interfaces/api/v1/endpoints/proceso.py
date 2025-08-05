@@ -8,7 +8,7 @@ from app.application.use_cases.procesos.crear_proceso import crear_proceso
 from app.application.use_cases.procesos.update_proceso import actualizar_proceso
 from app.application.use_cases.procesos.listar_procesos_cliente_por_empleado import listar_procesos_cliente_por_empleado
 
-router = APIRouter()
+router = APIRouter(prefix="/procesos", tags=["Proceso"])
 
 def get_db():
     db = SessionLocal()
@@ -20,7 +20,7 @@ def get_db():
 def get_repo(db: Session = Depends(get_db)):
     return ProcesoRepositorySQL(db)
 
-@router.post("/procesos", tags=["Procesos"], summary="Crear un nuevo proceso",
+@router.post("/", summary="Crear un nuevo proceso",
     description="Crea un proceso especificando nombre, frecuencia, temporalidad y fechas.")
 def crear(
     data: dict = Body(..., example={
@@ -36,7 +36,7 @@ def crear(
 ):
     return crear_proceso(data, repo)
 
-@router.get("/procesos", tags=["Procesos"], summary="Listar todos los procesos",
+@router.get("/", summary="Listar todos los procesos",
     description="Devuelve todos los procesos registrados en el sistema.")
 def listar(
     page: Optional[int] = Query(None, ge=1, description="Página actual"),
@@ -97,7 +97,7 @@ def listar(
         "procesos": procesos
     }
 
-@router.get("/procesos/{id}", tags=["Procesos"], summary="Obtener proceso por ID",
+@router.get("/{id}", summary="Obtener proceso por ID",
     description="Devuelve los datos de un proceso específico según su ID.")
 def get_proceso(
     id: int = Path(..., description="ID del proceso a consultar"),
@@ -108,7 +108,7 @@ def get_proceso(
         raise HTTPException(status_code=404, detail="Proceso no encontrado")
     return proceso
 
-@router.put("/procesos/{id}", tags=["Procesos"], summary="Actualizar proceso",
+@router.put("/{id}", summary="Actualizar proceso",
     description="Actualiza los datos de un proceso existente por su ID.")
 def update(
     id: int = Path(..., description="ID del proceso a actualizar"),
@@ -128,7 +128,7 @@ def update(
         raise HTTPException(status_code=404, detail="Proceso no encontrado")
     return actualizado
 
-@router.delete("/procesos/{id}", tags=["Procesos"], summary="Eliminar proceso",
+@router.delete("/{id}", summary="Eliminar proceso",
     description="Elimina un proceso existente según su ID.")
 def delete_proceso(
     id: int = Path(..., description="ID del proceso a eliminar"),
@@ -139,7 +139,7 @@ def delete_proceso(
         raise HTTPException(status_code=404, detail="Proceso no encontrado")
     return {"mensaje": "Proceso eliminado"}
 
-@router.get("/procesos/procesos-cliente-por-empleado", tags=["Procesos"], summary="Listar procesos por cliente/empleado",
+@router.get("/procesos-cliente-por-empleado", summary="Listar procesos por cliente/empleado",
     description="Devuelve todos los procesos asociados a los clientes del empleado indicado. Se puede filtrar por fecha de inicio, fin, mes y año.")
 def procesos_cliente_por_empleado(
     email: str = Query(..., description="Email del empleado que hace la consulta"),

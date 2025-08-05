@@ -17,6 +17,6 @@ class ClienteRepository(ABC):
         pass
 
     @abstractmethod
-    def obtener_por_id(self, id: int) -> Optional[Cliente]:
+    def obtener_por_id(self, id: str) -> Optional[Cliente]:
         """Obtiene un cliente por su ID"""
         pass

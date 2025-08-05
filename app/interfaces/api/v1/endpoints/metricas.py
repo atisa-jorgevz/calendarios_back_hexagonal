@@ -12,7 +12,7 @@ from app.interfaces.schemas.metricas import (
     ResumenMetricasSchema
 )
 
-router = APIRouter()
+router = APIRouter(prefix="/metricas", tags=["Metricas"])
 
 @router.get("/cumplimiento-hitos", response_model=CumplimientoHitosSchema)
 async def get_cumplimiento_hitos(

@@ -9,7 +9,7 @@ from app.domain.entities.plantilla import Plantilla
 from app.application.use_cases.plantillas.update_plantilla import actualizar_plantilla
 
 
-router = APIRouter()
+router = APIRouter(prefix="/plantillas", tags=["Plantilla"])
 
 def get_db():
     db = SessionLocal()
@@ -22,7 +22,7 @@ def get_repo(db: Session = Depends(get_db)):
     return PlantillaRepositorySQL(db)
 
 # Crear un nuevo plantilla
-@router.post("/plantillas", tags=["Plantillas"])
+@router.post("/")
 def crear(data: dict = Body(..., example={"nombre": "Plantilla Fiscal", "descripcion": "Para procesos fiscales"}), repo = Depends(get_repo)):
     plantilla = Plantilla(
         nombre=data.get("nombre"),
@@ -31,7 +31,7 @@ def crear(data: dict = Body(..., example={"nombre": "Plantilla Fiscal", "descrip
     return repo.guardar(plantilla)
 
 # Listar todos los plantillas
-@router.get("/plantillas", tags=["Plantillas"])
+@router.get("/")
 def listar(
     page: Optional[int] = Query(None, ge=1, description="Página actual"),
     limit: Optional[int] = Query(None, ge=1, le=100, description="Cantidad de resultados por página"),
@@ -80,7 +80,7 @@ def listar(
     }
 
 # Obtener un plantilla por ID
-@router.get("/plantillas/{id}", tags=["Plantillas"])
+@router.get("/{id}")
 def get_plantilla(id: int, repo = Depends(get_repo)):
     """
     Devuelve una plantilla con campos:
@@ -94,7 +94,7 @@ def get_plantilla(id: int, repo = Depends(get_repo)):
     return plantilla
 
 # Actualizar un plantilla
-@router.put("/plantillas/{id}", tags=["Plantillas"])
+@router.put("/{id}")
 def update(id: int, data: dict, repo = Depends(get_repo)):
     actualizado = actualizar_plantilla(id, data, repo)
     if not actualizado:
@@ -102,7 +102,7 @@ def update(id: int, data: dict, repo = Depends(get_repo)):
     return actualizado
 
 # Eliminar un plantilla
-@router.delete("/plantillas/{id}", tags=["Plantillas"])
+@router.delete("/{id}")
 def delete_plantilla(id: int, repo = Depends(get_repo)):
     resultado = repo.eliminar(id)
     if not resultado:

@@ -28,7 +28,7 @@ from app.interfaces.api.v1.endpoints import (
     documento,
     documento_metadato,
     subdepar,
-    metricas,
+    metricas
 )
 
 
@@ -67,6 +67,7 @@ app.include_router(proceso.router,              dependencies=[Depends(get_curren
 app.include_router(hito.router,                 dependencies=[Depends(get_current_user)])
 app.include_router(cliente.router,              dependencies=[Depends(get_current_user)])
 app.include_router(cliente_proceso.router,      dependencies=[Depends(get_current_user)])
+app.include_router(cliente_proceso.router_calendario, dependencies=[Depends(get_current_user)])
 app.include_router(cliente_proceso_hito.router, dependencies=[Depends(get_current_user)])
 app.include_router(cliente_proceso_hito_cumplimiento.router, dependencies=[Depends(get_current_user)])
 app.include_router(plantilla_proceso.router,    dependencies=[Depends(get_current_user)])
@@ -76,12 +77,7 @@ app.include_router(documento.router,            dependencies=[Depends(get_curren
 app.include_router(documento_metadato.router,   dependencies=[Depends(get_current_user)])
 app.include_router(metadatos_area.router,       dependencies=[Depends(get_current_user)])
 app.include_router(subdepar.router,             dependencies=[Depends(get_current_user)])
-app.include_router(
-    metricas.router,
-    prefix="/api/metricas",
-    tags=["Métricas"],
-    dependencies=[Depends(get_current_user)],
-)
+app.include_router(metricas.router,             dependencies=[Depends(get_current_user)])
 
 
 # --- Health check opcional ---

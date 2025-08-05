@@ -5,7 +5,7 @@ from app.infrastructure.db.repositories.cliente_proceso_hito_repository_sql impo
 
 from app.domain.entities.cliente_proceso_hito import ClienteProcesoHito
 
-router = APIRouter()
+router = APIRouter(prefix="/cliente-proceso-hitos", tags=["ClienteProcesoHito"])
 
 def get_db():
     db = SessionLocal()
@@ -44,12 +44,12 @@ def crear(
     )
     return repo.guardar(hito)
 
-@router.get("/cliente-proceso-hitos", tags=["ClienteProcesoHito"], summary="Listar todas las relaciones cliente-proceso-hito",
+@router.get("/", summary="Listar todas las relaciones cliente-proceso-hito",
     description="Devuelve todas las relaciones entre clientes, procesos e hitos registradas.")
 def listar(repo = Depends(get_repo)):
     return repo.listar()
 
-@router.get("/cliente-proceso-hitos/{id}", tags=["ClienteProcesoHito"], summary="Obtener relación por ID",
+@router.get("/{id}", summary="Obtener relación por ID",
     description="Devuelve una relación cliente-proceso-hito específica según su ID.")
 def get(
     id: int = Path(..., description="ID de la relación a consultar"),
@@ -60,7 +60,7 @@ def get(
         raise HTTPException(status_code=404, detail="No encontrado")
     return hito
 
-@router.put("/cliente-proceso-hitos/{id}", tags=["ClienteProcesoHito"], summary="Actualizar relación cliente-proceso-hito",
+@router.put("/{id}", summary="Actualizar relación cliente-proceso-hito",
     description="Actualiza una relación cliente-proceso-hito existente por su ID.")
 def actualizar(
     id: int = Path(..., description="ID de la relación a actualizar"),
@@ -77,7 +77,7 @@ def actualizar(
         raise HTTPException(status_code=404, detail="No encontrado")
     return hito_actualizado
 
-@router.delete("/cliente-proceso-hitos/{id}", tags=["ClienteProcesoHito"], summary="Eliminar relación",
+@router.delete("/{id}", summary="Eliminar relación",
     description="Elimina una relación cliente-proceso-hito existente por su ID.")
 def delete(
     id: int = Path(..., description="ID de la relación a eliminar"),
@@ -88,7 +88,7 @@ def delete(
         raise HTTPException(status_code=404, detail="No encontrado")
     return {"mensaje": "Eliminado"}
 
-@router.get("/cliente-proceso-hitos/cliente-proceso/{id_cliente_proceso}", tags=["ClienteProcesoHito"], summary="Listar hitos de un proceso de cliente",
+@router.get("/cliente-proceso/{id_cliente_proceso}", summary="Listar hitos de un proceso de cliente",
     description="Devuelve todos los hitos asociados a un proceso de cliente específico.")
 def get_hitos_por_proceso(
     id_cliente_proceso: int = Path(..., description="ID del proceso de cliente"),

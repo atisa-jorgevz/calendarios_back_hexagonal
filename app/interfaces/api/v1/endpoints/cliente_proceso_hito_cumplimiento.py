@@ -8,7 +8,7 @@ from app.infrastructure.db.repositories.cliente_proceso_hito_repository_sql impo
 
 from app.domain.entities.cliente_proceso_hito_cumplimiento import ClienteProcesoHitoCumplimiento
 
-router = APIRouter()
+router = APIRouter(prefix="/cliente-proceso-hito-cumplimientos", tags=["ClienteProcesoHitoCumplimiento"])
 
 def get_db():
     db = SessionLocal()
@@ -23,7 +23,7 @@ def get_repo(db: Session = Depends(get_db)):
 def get_repo_cliente_proceso_hito(db: Session = Depends(get_db)):
     return ClienteProcesoHitoRepositorySQL(db)
 
-@router.post("/cliente-proceso-hito-cumplimientos", tags=["ClienteProcesoHitoCumplimiento"], summary="Crear cumplimiento de hito",
+@router.post("/", summary="Crear cumplimiento de hito",
     description="Registra el cumplimiento de un hito específico de un proceso de cliente.")
 def crear(
     data: dict = Body(..., example={
@@ -62,7 +62,7 @@ def crear(
         # Manejar errores inesperados
         raise HTTPException(status_code=500, detail=f"Error interno del servidor: {str(e)}")
 
-@router.get("/cliente-proceso-hito-cumplimientos", tags=["ClienteProcesoHitoCumplimiento"], summary="Listar todos los cumplimientos",
+@router.get("/", summary="Listar todos los cumplimientos",
     description="Devuelve todos los registros de cumplimiento de hitos con soporte para paginación y ordenación.")
 def listar(
     page: Optional[int] = Query(None, ge=1, description="Página actual"),
@@ -108,7 +108,7 @@ def listar(
         "cumplimientos": cumplimientos
     }
 
-@router.get("/cliente-proceso-hito-cumplimientos/{id}", tags=["ClienteProcesoHitoCumplimiento"], summary="Obtener cumplimiento por ID",
+@router.get("/{id}", summary="Obtener cumplimiento por ID",
     description="Devuelve un registro de cumplimiento de hito específico según su ID.")
 def obtener(
     id: int = Path(..., description="ID del cumplimiento a consultar"),
@@ -119,7 +119,8 @@ def obtener(
         raise HTTPException(status_code=404, detail="Cumplimiento no encontrado")
     return cumplimiento
 
-@router.get("/cliente-proceso-hito-cumplimientos/cliente-proceso-hito/{id}", tags=["ClienteProcesoHitoCumplimiento"], summary="Obtener cumplimiento por ID de cliente_proceso_hito",
+@router.get("/cliente-proceso-hito/{id}",
+    summary="Obtener cumplimiento por ID de cliente_proceso_hito",
     description="Devuelve registros de cumplimiento de hito específicos según su ID de cliente_proceso_hito con soporte para paginación y ordenación.")
 def obtener_por_cliente_proceso_hito(
     id: int = Path(..., description="ID de cliente_proceso_hito a consultar"),
@@ -210,7 +211,7 @@ def obtener_por_cliente_proceso_hito(
         # Manejar errores inesperados
         raise HTTPException(status_code=500, detail=f"Error interno del servidor: {str(e)}")
 
-@router.put("/cliente-proceso-hito-cumplimientos/{id}", tags=["ClienteProcesoHitoCumplimiento"], summary="Actualizar cumplimiento",
+@router.put("/{id}", summary="Actualizar cumplimiento",
     description="Actualiza un registro de cumplimiento de hito existente por su ID.")
 def actualizar(
     id: int = Path(..., description="ID del cumplimiento a actualizar"),
@@ -227,7 +228,7 @@ def actualizar(
         raise HTTPException(status_code=404, detail="Cumplimiento no encontrado")
     return cumplimiento_actualizado
 
-@router.delete("/cliente-proceso-hito-cumplimientos/{id}", tags=["ClienteProcesoHitoCumplimiento"], summary="Eliminar cumplimiento",
+@router.delete("/{id}", summary="Eliminar cumplimiento",
     description="Elimina un registro de cumplimiento de hito existente por su ID.")
 def eliminar(
     id: int = Path(..., description="ID del cumplimiento a eliminar"),

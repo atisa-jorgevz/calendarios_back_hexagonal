@@ -12,7 +12,7 @@ from app.application.use_cases.cliente_proceso.generar_calendario_cliente_proces
 from typing import Optional
 from fastapi import Query, Depends
 
-router = APIRouter()
+router = APIRouter(prefix="/cliente-procesos", tags=["ClienteProceso"])
 
 def get_db():
     db = SessionLocal()
@@ -24,42 +24,31 @@ def get_db():
 def get_repo(db: Session = Depends(get_db)):
     return ClienteProcesoRepositorySQL(db)
 
-def get_repo_proceso(db: Session = Depends(get_db)):    
+def get_repo_proceso(db: Session = Depends(get_db)):
     return ProcesoRepositorySQL(db)
 
-def get_repo_proceso_hito_maestro(db: Session = Depends(get_db)):    
+def get_repo_proceso_hito_maestro(db: Session = Depends(get_db)):
     return ProcesoHitoMaestroRepositorySQL(db)
 
-def get_repo_cliente_proceso_hito(db: Session = Depends(get_db)):    
+def get_repo_cliente_proceso_hito(db: Session = Depends(get_db)):
     return ClienteProcesoHitoRepositorySQL(db)
 
-@router.post("/cliente-procesos")
+@router.post("/")
 def crear(data: dict, repo = Depends(get_repo)):
     return crear_cliente_proceso(data, repo)
-    
-@router.post("/generar-calendario-cliente-proceso")
-def generar_calendario_cliente_by_proceso(request: GenerarClienteProcesoRequest,
-                                        repo = Depends(get_repo), 
-                                        proceso_repo = Depends(get_repo_proceso),
-                                        repo_proceso_hito_maestro = Depends(get_repo_proceso_hito_maestro),
-                                        repo_cliente_proceso_hito = Depends(get_repo_cliente_proceso_hito)):
-    proceso_maestro = proceso_repo.obtener_por_id(request.id_proceso) #esto podria hacerse tambien en vez de mediante el repo, con el caso de uso...
-    return generar_calendario_cliente_proceso(request,proceso_maestro, repo,repo_proceso_hito_maestro, repo_cliente_proceso_hito)
 
-
-
-@router.get("/cliente-procesos")
+@router.get("/")
 def listar(repo = Depends(get_repo)):
     return repo.listar()
 
-@router.get("/cliente-procesos/{id}")
+@router.get("/{id}")
 def get(id: int, repo = Depends(get_repo)):
     cliente_proceso = repo.obtener_por_id(id)
     if not cliente_proceso:
         raise HTTPException(status_code=404, detail="No encontrado")
     return cliente_proceso
 
-@router.get("/cliente-procesos/cliente/{idcliente}")
+@router.get("/cliente/{idcliente}")
 def get_por_cliente(idcliente: int,
                     page: Optional[int] = Query(None, ge=1, description="Página actual"),
                     limit: Optional[int] = Query(None, ge=1, le=100, description="Cantidad de resultados por página"),
@@ -78,9 +67,20 @@ def get_por_cliente(idcliente: int,
         "total": total
     }
 
-@router.delete("/cliente-procesos/{id}")
+@router.delete("/{id}")
 def delete(id: int, repo = Depends(get_repo)):
     ok = repo.eliminar(id)
     if not ok:
         raise HTTPException(status_code=404, detail="No encontrado")
     return {"mensaje": "Eliminado"}
+
+router_calendario = APIRouter(prefix="", tags=["Generar Calendario"])
+
+@router_calendario.post("/generar-calendario-cliente-proceso")
+def generar_calendario_cliente_by_proceso(request: GenerarClienteProcesoRequest,
+                                        repo = Depends(get_repo),
+                                        proceso_repo = Depends(get_repo_proceso),
+                                        repo_proceso_hito_maestro = Depends(get_repo_proceso_hito_maestro),
+                                        repo_cliente_proceso_hito = Depends(get_repo_cliente_proceso_hito)):
+    proceso_maestro = proceso_repo.obtener_por_id(request.id_proceso) #esto podria hacerse tambien en vez de mediante el repo, con el caso de uso...
+    return generar_calendario_cliente_proceso(request,proceso_maestro, repo,repo_proceso_hito_maestro, repo_cliente_proceso_hito)

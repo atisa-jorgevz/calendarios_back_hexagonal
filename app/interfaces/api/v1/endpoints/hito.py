@@ -9,7 +9,7 @@ from app.infrastructure.db.repositories.proceso_hito_maestro_repository_sql impo
 from app.domain.entities.hito import Hito
 from app.application.use_cases.hitos.update_hito import actualizar_hito
 
-router = APIRouter()
+router = APIRouter(prefix="/hitos", tags=["Hito"])
 
 def get_db():
     db = SessionLocal()
@@ -27,7 +27,7 @@ def get_repo_cliente_proceso_hito(db: Session = Depends(get_db)):
 def get_repo_proceso_hito_maestro(db: Session = Depends(get_db)):
     return ProcesoHitoMaestroRepositorySQL(db)
 
-@router.post("/hitos", tags=["Hitos"], summary="Crear un nuevo hito",
+@router.post("/", summary="Crear un nuevo hito",
     description="Crea un nuevo hito especificando nombre, fechas y si es obligatorio.")
 def crear(
     data: dict = Body(..., example={
@@ -56,7 +56,7 @@ def crear(
     )
     return repo.guardar(hito)
 
-@router.get("/hitos/hitos-cliente-por-empleado", tags=["Hitos"], summary="Listar hitos por cliente/empleado",
+@router.get("/hitos-cliente-por-empleado", summary="Listar hitos por cliente/empleado",
     description="Devuelve todos los hitos asociados a los procesos de clientes gestionados por un empleado. Filtrable por fecha de inicio, fin, mes y año.")
 def obtener_hitos_por_empleado(
     email: str = Query(..., description="Email del empleado"),
@@ -74,7 +74,7 @@ def obtener_hitos_por_empleado(
         anio=anio
     )
 
-@router.get("/hitos", tags=["Hitos"], summary="Listar todos los hitos",
+@router.get("/", summary="Listar todos los hitos",
     description="Devuelve todos los hitos definidos en el sistema.")
 def listar(
     page: Optional[int] = Query(None, ge=1, description="Página actual"),
@@ -139,7 +139,7 @@ def listar(
         "hitos": hitos
     }
 
-@router.get("/hitos/{id}", tags=["Hitos"], summary="Obtener hito por ID",
+@router.get("/{id}", summary="Obtener hito por ID",
     description="Devuelve la información de un hito específico por su ID.")
 def get_hito(
     id: int = Path(..., description="ID del hito a consultar"),
@@ -150,7 +150,7 @@ def get_hito(
         raise HTTPException(status_code=404, detail="Hito no encontrado")
     return hito
 
-@router.put("/hitos/{id}", tags=["Hitos"], summary="Actualizar hito",
+@router.put("/{id}", summary="Actualizar hito",
     description="Actualiza un hito existente por su ID.")
 def update(
     id: int = Path(..., description="ID del hito a actualizar"),
@@ -169,7 +169,7 @@ def update(
         raise HTTPException(status_code=404, detail="Hito no encontrado")
     return actualizado
 
-@router.delete("/hitos/{id}", tags=["Hitos"], summary="Eliminar hito",
+@router.delete("/{id}", summary="Eliminar hito",
     description="Elimina un hito por su ID. Verifica que no existan registros finalizados antes de eliminar.")
 def delete_hito(
     id: int = Path(..., description="ID del hito a eliminar"),
