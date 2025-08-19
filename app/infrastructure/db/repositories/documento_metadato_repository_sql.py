@@ -20,6 +20,7 @@ class SqlDocumentoMetadatoRepository(DocumentoMetadatoRepository):
         model = self.db.query(DocumentoMetadatoModel).get(doc_metadato.id)
         model.id_documento = doc_metadato.id_documento
         model.id_metadato = doc_metadato.id_metadato
+        model.valor = doc_metadato.valor
         self.db.commit()
         self.db.refresh(model)
         return DocumentoMetadatoMapper.to_entity(model)

@@ -8,7 +8,8 @@ class DocumentoMetadatoMapper:
         return DocumentoMetadato(
             id=model.id,
             id_documento=model.id_documento,
-            id_metadato=model.id_metadato
+            id_metadato=model.id_metadato,
+            valor=model.valor
         )
 
     @staticmethod
@@ -16,5 +17,6 @@ class DocumentoMetadatoMapper:
         return DocumentoMetadatoModel(
             id=entity.id,
             id_documento=entity.id_documento,
-            id_metadato=entity.id_metadato
+            id_metadato=entity.id_metadato,
+            valor=entity.valor
         )

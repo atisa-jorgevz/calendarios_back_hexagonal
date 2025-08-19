@@ -18,5 +18,6 @@ class DocumentoRepositoryPort(ABC):
     @abstractmethod
     def get_by_id(self, doc_id: int) -> Documento | None:
         pass
+
     @abstractmethod
     def get_all(self) -> List[Documento]: pass
