@@ -6,10 +6,9 @@ from app.domain.repositories.cliente_proceso_repository import ClienteProcesoRep
 from app.domain.repositories.proceso_hito_maestro_repository import ProcesoHitoMaestroRepository
 from .base_generador import GeneradorTemporalidad
 
-class GeneradorMensual(GeneradorTemporalidad):
+class GeneradorSemestral(GeneradorTemporalidad):
     def generar(self, data, proceso_maestro: Proceso, repo: ClienteProcesoRepository, repo_hito_maestro: ProcesoHitoMaestroRepository) -> dict:
         procesos_creados = []
-        frecuencia = 1
 
         # Obtener hitos del proceso maestro
         hitos_maestros = repo_hito_maestro.listar_por_proceso(proceso_maestro.id)
@@ -28,35 +27,53 @@ class GeneradorMensual(GeneradorTemporalidad):
         # Comenzar desde enero del año del primer hito
         # Si no hay fecha_inicio en el request, usar el día del primer hito
         if hasattr(data, 'fecha_inicio') and data.fecha_inicio:
-            fecha_actual = data.fecha_inicio
+            dia_inicio = data.fecha_inicio.day
         else:
-            fecha_actual = date(anio, 1, primer_hito.fecha_inicio.day)
+            dia_inicio = primer_hito.fecha_inicio.day
+
+        fecha_actual = date(anio, 1, dia_inicio)
 
         while fecha_actual.year == anio and fecha_actual.month <= 12:
             mes_inicio = fecha_actual.month
-            _, last_day = monthrange(anio, mes_inicio)
-            dia_inicio = fecha_actual.day if mes_inicio == fecha_actual.month else primer_hito.fecha_inicio.day
-            fecha_inicio = date(anio, mes_inicio, min(dia_inicio, last_day))
+            _, last_day_inicio = monthrange(anio, mes_inicio)
+            fecha_inicio = date(anio, mes_inicio, min(fecha_actual.day, last_day_inicio))
 
-            mes_fin = min(mes_inicio + frecuencia - 1, 12)
+            # Un semestre son 6 meses, así que el mes final será mes_inicio + 5
+            mes_fin = min(mes_inicio + 5, 12)
             _, last_day_fin = monthrange(anio, mes_fin)
             fecha_fin = date(anio, mes_fin, last_day_fin)
+
+            # Ajustar fechas basándose en los hitos del proceso
+            # El primer hito define la fecha de inicio real del proceso
+            if primer_hito.fecha_inicio:
+                # Usar el día del primer hito pero del mes calculado
+                fecha_inicio_real = date(anio, mes_inicio, min(primer_hito.fecha_inicio.day, last_day_inicio))
+            else:
+                fecha_inicio_real = fecha_inicio
+
+            # El último hito define la fecha de fin real del proceso
+            if ultimo_hito.fecha_fin:
+                # Usar el día del último hito pero del mes calculado
+                fecha_fin_real = date(anio, mes_fin, min(ultimo_hito.fecha_fin.day, last_day_fin))
+            else:
+                fecha_fin_real = fecha_fin
 
             cliente_proceso = ClienteProceso(
                 id=None,
                 idcliente=data.idcliente,
                 id_proceso=data.id_proceso,
-                fecha_inicio=fecha_inicio,
-                fecha_fin=fecha_fin,
+                fecha_inicio=fecha_inicio_real,
+                fecha_fin=fecha_fin_real,
                 mes=mes_inicio,
                 anio=anio,
                 id_anterior=None
             )
-
             procesos_creados.append(repo.guardar(cliente_proceso))
-            if mes_inicio + frecuencia > 12:
+
+            # Avanzar 6 meses para el siguiente semestre
+            if mes_inicio + 6 > 12:
                 break
-            fecha_actual = date(anio, mes_inicio + frecuencia, 1)
+            fecha_actual = date(anio, mes_inicio + 6, 1)
 
         return {
             "mensaje": "Procesos cliente generados con éxito",

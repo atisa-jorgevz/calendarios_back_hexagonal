@@ -11,8 +11,6 @@ class ProcesoModel(Base):
     id = Column(Integer, primary_key=True, index=True)
     nombre = Column(String(255), nullable=False)
     descripcion = Column(String(255), nullable=True)
-    fecha_inicio = Column(Date, nullable=False)
-    fecha_fin = Column(Date, nullable=True)
     frecuencia = Column(Integer, nullable=False)
     temporalidad = Column(String(50), nullable=False)
     inicia_dia_1 = Column(Integer, nullable=False, default=0)

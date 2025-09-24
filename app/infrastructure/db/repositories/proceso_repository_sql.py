@@ -32,7 +32,7 @@ class ProcesoRepositorySQL(ProcesoRepository):
 
     def listar(self):
         return self.session.query(ProcesoModel).all()
-    
+
     def obtener_por_id(self, id: int):
         return self.session.query(ProcesoModel).filter_by(id=id).first()
 
@@ -44,17 +44,15 @@ class ProcesoRepositorySQL(ProcesoRepository):
         self.session.commit()
         return True
 
-    def listar_procesos_cliente_por_empleado(self, email: str, fecha_inicio=None, fecha_fin=None, mes=None, anio=None):
+    def listar_procesos_cliente_por_empleado(self, email: str, mes=None, anio=None):
         sql = construir_sql_procesos_cliente_por_empleado(
-            filtrar_fecha=bool(fecha_inicio and fecha_fin),
+            filtrar_fecha=False,
             filtrar_mes=bool(mes),
             filtrar_anio=bool(anio)
         )
 
         params = {
             "email": email,
-            "fecha_inicio": fecha_inicio,
-            "fecha_fin": fecha_fin,
             "mes": mes,
             "anio": anio
         }
@@ -78,9 +76,7 @@ class ProcesoRepositorySQL(ProcesoRepository):
             if pid not in proc_map:
                 proc_map[pid] = {
                     "id": pid,
-                    "nombre": r["proceso_nombre"],
-                    "fecha_inicio": r["proceso_fecha_inicio"],
-                    "fecha_fin": r["proceso_fecha_fin"]
+                    "nombre": r["proceso_nombre"]
                 }
 
         resultado = []

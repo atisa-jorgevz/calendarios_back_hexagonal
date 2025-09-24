@@ -28,8 +28,6 @@ def crear(
         "descripcion": "Proceso contable mensual",
         "frecuencia": 1,
         "temporalidad": "mes",
-        "fecha_inicio": "2023-01-01",
-        "fecha_fin": "2023-12-31",
         "inicia_dia_1": True
     }),
     repo = Depends(get_repo)
@@ -62,18 +60,6 @@ def listar(
             if sort_field in ["id", "frecuencia"]:
                 try:
                     return int(value)
-                except (ValueError, TypeError):
-                    return 0
-            elif sort_field in ["fecha_inicio", "fecha_fin"]:
-                try:
-                    # Convertir fecha a timestamp para ordenación
-                    from datetime import datetime
-                    if isinstance(value, str):
-                        return datetime.fromisoformat(value.replace('Z', '+00:00')).timestamp()
-                    elif hasattr(value, 'timestamp'):
-                        return value.timestamp()
-                    else:
-                        return 0
                 except (ValueError, TypeError):
                     return 0
             else:
@@ -117,8 +103,6 @@ def update(
         "descripcion": "Nueva descripción del proceso",
         "frecuencia": 2,
         "temporalidad": "mes",
-        "fecha_inicio": "2024-01-01",
-        "fecha_fin": "2024-12-31",
         "inicia_dia_1": False
     }),
     repo = Depends(get_repo)
@@ -140,11 +124,9 @@ def delete_proceso(
     return {"mensaje": "Proceso eliminado"}
 
 @router.get("/procesos-cliente-por-empleado", summary="Listar procesos por cliente/empleado",
-    description="Devuelve todos los procesos asociados a los clientes del empleado indicado. Se puede filtrar por fecha de inicio, fin, mes y año.")
+    description="Devuelve todos los procesos asociados a los clientes del empleado indicado. Se puede filtrar por mes y año.")
 def procesos_cliente_por_empleado(
     email: str = Query(..., description="Email del empleado que hace la consulta"),
-    fecha_inicio: Optional[str] = Query(None, description="Fecha mínima (YYYY-MM-DD)"),
-    fecha_fin: Optional[str] = Query(None, description="Fecha máxima (YYYY-MM-DD)"),
     mes: Optional[int] = Query(None, ge=1, le=12, description="Mes de inicio (1-12)"),
     anio: Optional[int] = Query(None, ge=2000, le=2100, description="Año de inicio (ej: 2024)"),
     repo = Depends(get_repo)
@@ -156,8 +138,6 @@ def procesos_cliente_por_empleado(
     return listar_procesos_cliente_por_empleado(
         email=email,
         repo=repo,
-        fecha_inicio=fecha_inicio,
-        fecha_fin=fecha_fin,
         mes=mes,
         anio=anio
     )

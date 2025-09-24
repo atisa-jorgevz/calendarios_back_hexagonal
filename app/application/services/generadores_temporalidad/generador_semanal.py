@@ -1,15 +1,35 @@
-from datetime import timedelta
+from datetime import timedelta, date
 from app.domain.entities.cliente_proceso import ClienteProceso
 from app.domain.entities.proceso import Proceso
 from app.domain.repositories.cliente_proceso_repository import ClienteProcesoRepository
+from app.domain.repositories.proceso_hito_maestro_repository import ProcesoHitoMaestroRepository
 from .base_generador import GeneradorTemporalidad
 
 class GeneradorSemanal(GeneradorTemporalidad):
-    def generar(self, data, proceso_maestro: Proceso, repo: ClienteProcesoRepository) -> dict:
+    def generar(self, data, proceso_maestro: Proceso, repo: ClienteProcesoRepository, repo_hito_maestro: ProcesoHitoMaestroRepository) -> dict:
         procesos_creados = []
         frecuencia = 1
-        fecha_actual = data.fecha_inicio
-        anio = fecha_actual.year
+
+        # Obtener hitos del proceso maestro
+        hitos_maestros = repo_hito_maestro.listar_por_proceso(proceso_maestro.id)
+
+        if not hitos_maestros:
+            raise ValueError(f"No se encontraron hitos para el proceso {proceso_maestro.id}")
+
+        # Ordenar hitos por fecha de inicio para obtener el primero y último
+        hitos_ordenados = sorted(hitos_maestros, key=lambda x: x[1].fecha_inicio)
+        primer_hito = hitos_ordenados[0][1]  # HitoModel
+        ultimo_hito = hitos_ordenados[-1][1]  # HitoModel
+
+        # Usar el año de la fecha de inicio del primer hito como base
+        anio = primer_hito.fecha_inicio.year
+
+        # Comenzar desde el primer día del año del primer hito
+        # Si no hay fecha_inicio en el request, usar el día del primer hito
+        if hasattr(data, 'fecha_inicio') and data.fecha_inicio:
+            fecha_actual = data.fecha_inicio
+        else:
+            fecha_actual = date(anio, 1, primer_hito.fecha_inicio.day)
 
         while fecha_actual.year == anio:
             fecha_inicio = fecha_actual

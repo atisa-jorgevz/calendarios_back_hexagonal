@@ -14,7 +14,7 @@ def generar_calendario_cliente_proceso(
     repo_hito_cliente: ClienteProcesoHitoRepository
 ):
     generador = obtener_generador(proceso_maestro.temporalidad)
-    resultado = generador.generar(data, proceso_maestro, repo)
+    resultado = generador.generar(data, proceso_maestro, repo, repo_hito_maestro)
 
     # Crear hitos para cada ClienteProceso generado
     for cliente_proceso in resultado.get("procesos", []):
