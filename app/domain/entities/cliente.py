@@ -1,16 +1,16 @@
-from dataclasses import dataclass
 from typing import Optional
 
-@dataclass
+
 class Cliente:
-    idcliente: str
-    cif: Optional[str]
-    cif_empresa: Optional[str]
-    razsoc: Optional[str]
-    direccion: Optional[str]
-    localidad: Optional[str]
-    provincia: Optional[str]
-    cpostal: Optional[str]
-    codigop: Optional[str]
-    pais: Optional[str]
-    cif_factura: Optional[str]
+    def __init__(self, idcliente=None, cif=None, cif_empresa=None, razsoc=None, direccion=None, localidad=None, provincia=None, cpostal=None, codigop=None, pais=None, cif_factura=None):
+        self.idcliente = idcliente
+        self.cif = cif
+        self.cif_empresa = cif_empresa
+        self.razsoc = razsoc
+        self.direccion = direccion
+        self.localidad = localidad
+        self.provincia = provincia
+        self.cpostal = cpostal
+        self.codigop = codigop
+        self.pais = pais
+        self.cif_factura = cif_factura

@@ -21,7 +21,7 @@ class SqlDocumentalDocumentosRepository(DocumentalDocumentosRepository):
 
     def guardar(self, documento_documentos: DocumentalDocumentos) -> DocumentalDocumentos:
         # Excluir el id si es None para que se auto-genere
-        data = {k: v for k, v in vars(documento_documentos).items() if v is not None}
+        data = {k: v for k, v in documento_documentos.__dict__.items() if v is not None}
         modelo = DocumentalDocumentosModel(**data)
         self.session.add(modelo)
         self.session.commit()

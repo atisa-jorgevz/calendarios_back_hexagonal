@@ -9,7 +9,7 @@ class SqlDocumentalCategoriaRepository(DocumentalCategoriaRepository):
         self.session = session
 
     def guardar(self, documento_categoria: DocumentalCategoria):
-        modelo = DocumentalCategoriaModel(**vars(documento_categoria))
+        modelo = DocumentalCategoriaModel(**documento_categoria.__dict__)
         self.session.add(modelo)
         self.session.commit()
         self.session.refresh(modelo)

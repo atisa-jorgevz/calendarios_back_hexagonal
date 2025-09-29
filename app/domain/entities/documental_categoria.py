@@ -1,7 +1,5 @@
-from dataclasses import dataclass
-
-@dataclass(frozen=True)
 class DocumentalCategoria:
-    id: int
-    id_cliente: str
-    nombre: str
+    def __init__(self, id=None, id_cliente=None, nombre=None):
+        self.id = id
+        self.id_cliente = id_cliente
+        self.nombre = nombre
