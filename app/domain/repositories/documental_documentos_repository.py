@@ -25,5 +25,5 @@ class DocumentalDocumentosRepository(ABC):
         pass
 
     @abstractmethod
-    def obtener_por_cliente_categoria(self, id_cliente: str, id_categoria: int) -> List[DocumentalDocumentos]:
+    def obtener_por_cliente_categoria(self, cliente_id: str, categoria_id: int) -> List[DocumentalDocumentos]:
         pass

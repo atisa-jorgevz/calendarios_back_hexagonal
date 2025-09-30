@@ -20,9 +20,9 @@ class EliminarDocumentoUseCase:
             raise ValueError(f"Documento {id_documento} no existe")
 
         # 2) Obtener CIF
-        relacion = self.cph_repo.obtener_por_id(doc.id_cliente_proceso_hito)
+        relacion = self.cph_repo.obtener_por_id(doc.cliente_proceso_hito_id)
         if not relacion:
-            raise ValueError(f"ClienteProcesoHito {doc.id_cliente_proceso_hito} no encontrado")
+            raise ValueError(f"ClienteProcesoHito {doc.cliente_proceso_hito_id} no encontrado")
         cif = relacion.cliente_proceso.cliente.cif
 
         # 3) Borrar fichero físico

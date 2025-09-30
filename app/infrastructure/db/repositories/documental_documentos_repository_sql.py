@@ -12,8 +12,8 @@ class SqlDocumentalDocumentosRepository(DocumentalDocumentosRepository):
         """Convierte un modelo SQLAlchemy a una entidad del dominio"""
         return DocumentalDocumentos(
             id=modelo.id,
-            id_cliente=modelo.id_cliente,
-            id_categoria=modelo.id_categoria,
+            cliente_id=modelo.cliente_id,
+            categoria_id=modelo.categoria_id,
             nombre_documento=modelo.nombre_documento,
             original_file_name=modelo.original_file_name,
             stored_file_name=modelo.stored_file_name
@@ -58,9 +58,9 @@ class SqlDocumentalDocumentosRepository(DocumentalDocumentosRepository):
         self.session.commit()
         return True
 
-    def obtener_por_cliente_categoria(self, id_cliente: str, id_categoria: int) -> List[DocumentalDocumentos]:
+    def obtener_por_cliente_categoria(self, cliente_id: str, categoria_id: int) -> List[DocumentalDocumentos]:
         modelos = self.session.query(DocumentalDocumentosModel).filter_by(
-            id_cliente=id_cliente,
-            id_categoria=id_categoria
+            cliente_id=cliente_id,
+            categoria_id=categoria_id
         ).all()
         return [self._mapear_modelo_a_entidad(modelo) for modelo in modelos]

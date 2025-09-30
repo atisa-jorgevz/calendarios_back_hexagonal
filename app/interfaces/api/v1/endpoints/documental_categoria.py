@@ -71,11 +71,11 @@ def listar(
             "documental_categorias": documental_categorias
         }
 
-@router.get("/cliente/{id_cliente}",
+@router.get("/cliente/{cliente_id}",
            summary="Listar categorías de documentos por cliente",
            description="Devuelve todas las categorías de documentos de un cliente específico.")
 def listar_por_cliente(
-    id_cliente: int = Path(..., description="ID del cliente"),
+    cliente_id: str = Path(..., description="ID del cliente"),
     page: Optional[int] = Query(None, ge=1, description="Página actual"),
     limit: Optional[int] = Query(None, ge=1, le=100, description="Cantidad de resultados por página"),
     sort_field: Optional[str] = Query(None, description="Campo por el cual ordenar"),
@@ -83,7 +83,7 @@ def listar_por_cliente(
     repo = Depends(get_repo)
 ):
         # Obtener todas las categorías y filtrar por cliente
-        documental_categorias = repo.obtener_por_cliente(id_cliente)
+        documental_categorias = repo.obtener_por_cliente(cliente_id)
         total = len(documental_categorias)
 
         # Aplicar ordenación si se especifica y hay datos para ordenar
@@ -145,7 +145,7 @@ def crear(
 ):
     categoria = DocumentalCategoria(
         id=None,
-        id_cliente=data.id_cliente,
+        cliente_id=data.cliente_id,
         nombre=data.nombre
     )
     return repo.guardar(categoria)

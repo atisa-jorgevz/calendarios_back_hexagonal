@@ -33,8 +33,8 @@ class SqlDocumentalCategoriaRepository(DocumentalCategoriaRepository):
     def obtener_por_id(self, id: int):
         return self.session.query(DocumentalCategoriaModel).filter_by(id=id).first()
 
-    def obtener_por_cliente(self, id_cliente: str):
-        return self.session.query(DocumentalCategoriaModel).filter_by(id_cliente=id_cliente).all()
+    def obtener_por_cliente(self, cliente_id: str):
+        return self.session.query(DocumentalCategoriaModel).filter_by(cliente_id=cliente_id).all()
 
     def eliminar(self, id: int):
         documento_categoria = self.session.query(DocumentalCategoriaModel).filter_by(id=id).first()

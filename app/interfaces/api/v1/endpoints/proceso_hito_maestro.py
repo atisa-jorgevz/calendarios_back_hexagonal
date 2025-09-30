@@ -21,14 +21,15 @@ def get_repo(db: Session = Depends(get_db)):
     description="Crea una relación entre un proceso y un hito, especificando sus IDs.")
 def crear(
     data: dict = Body(..., example={
-        "id_proceso": 1,
-        "id_hito": 2
+        "proceso_id": 1,
+        "hito_id": 2
     }),
     repo = Depends(get_repo)
 ):
     relacion = ProcesoHitoMaestro(
-        id_proceso=data["id_proceso"],
-        id_hito=data["id_hito"]
+        id=data.get("id"),
+        proceso_id=data["proceso_id"],
+        hito_id=data["hito_id"]
     )
     return repo.guardar(relacion)
 

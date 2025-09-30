@@ -26,25 +26,25 @@ class CrearDocumentoUseCase:
 
     def execute(
         self,
-        id_cliente_proceso_hito: int,
+        cliente_proceso_hito_id: int,
         nombre_documento: str,
         original_file_name: str,
         content: bytes
     ) -> Documento:
         # 1) Recuperar ClienteProcesoHito
-        cph = self.cph_repo.obtener_por_id(id_cliente_proceso_hito)
+        cph = self.cph_repo.obtener_por_id(cliente_proceso_hito_id)
         if not cph:
-            raise ValueError(f"ClienteProcesoHito {id_cliente_proceso_hito} no existe")
+            raise ValueError(f"ClienteProcesoHito {cliente_proceso_hito_id} no existe")
 
         # 2) Con ese cph.cliente_proceso_id, recuperar ClienteProceso
         cp = self.cp_repo.obtener_por_id(cph.cliente_proceso_id)
         if not cp:
             raise ValueError(f"ClienteProceso {cph.cliente_proceso_id} no existe")
 
-        # 3) Con cp.idcliente, recuperar Cliente
-        cliente = self.cliente_repo.obtener_por_id(cp.idcliente)
+        # 3) Con cp.cliente_id, recuperar Cliente
+        cliente = self.cliente_repo.obtener_por_id(cp.cliente_id)
         if not cliente:
-            raise ValueError(f"Cliente {cp.idcliente} no existe")
+            raise ValueError(f"Cliente {cp.cliente_id} no existe")
 
         cif = cliente.cif
 
@@ -58,7 +58,7 @@ class CrearDocumentoUseCase:
         # 6) Construir entidad y persistir en BD
         nuevo_doc = Documento(
             id=None,
-            id_cliente_proceso_hito=id_cliente_proceso_hito,
+            cliente_proceso_hito_id=cliente_proceso_hito_id,
             nombre_documento=nombre_documento,
             original_file_name=original_file_name,
             stored_file_name=stored_file_name

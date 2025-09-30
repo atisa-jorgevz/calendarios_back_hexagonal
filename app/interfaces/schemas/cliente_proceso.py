@@ -3,6 +3,6 @@ from datetime import date
 from typing import Optional
 
 class GenerarClienteProcesoRequest(BaseModel):
-    idcliente: int
-    id_proceso: int
+    cliente_id: str
+    proceso_id: int
     fecha_inicio: Optional[date] = None

@@ -8,7 +8,7 @@ class ProcesoHitoMaestroRepositorySQL(ProcesoHitoMaestroRepository):
         self.session = session
 
     def guardar(self, relacion: ProcesoHitoMaestro):
-        modelo = ProcesoHitoMaestroModel(**vars(relacion))
+        modelo = ProcesoHitoMaestroModel(**relacion.__dict__)
         self.session.add(modelo)
         self.session.commit()
         self.session.refresh(modelo)
@@ -31,13 +31,13 @@ class ProcesoHitoMaestroRepositorySQL(ProcesoHitoMaestroRepository):
     def listar_por_proceso(self, id_proceso: int):
         # Hacer JOIN para obtener los datos completos del hito
         return self.session.query(ProcesoHitoMaestroModel, HitoModel).join(
-            HitoModel, ProcesoHitoMaestroModel.id_hito == HitoModel.id
-        ).filter(ProcesoHitoMaestroModel.id_proceso == id_proceso).all()
+            HitoModel, ProcesoHitoMaestroModel.hito_id == HitoModel.id
+        ).filter(ProcesoHitoMaestroModel.proceso_id == id_proceso).all()
 
     def eliminar_por_hito_id(self, hito_id: int):
         """Elimina todos los registros de proceso_hito_maestro asociados a un hito específico"""
         eliminados = self.session.query(ProcesoHitoMaestroModel).filter(
-            ProcesoHitoMaestroModel.id_hito == hito_id
+            ProcesoHitoMaestroModel.hito_id == hito_id
         ).delete(synchronize_session=False)
 
         self.session.commit()

@@ -8,7 +8,7 @@ class ClienteProcesoRepositorySQL(ClienteProcesoRepository):
         self.session = session
 
     def guardar(self, cliente_proceso: ClienteProceso):
-        modelo = ClienteProcesoModel(**vars(cliente_proceso))
+        modelo = ClienteProcesoModel(**cliente_proceso.__dict__)
         self.session.add(modelo)
         self.session.commit()
         self.session.refresh(modelo)
@@ -28,5 +28,5 @@ class ClienteProcesoRepositorySQL(ClienteProcesoRepository):
         self.session.commit()
         return True
 
-    def listar_por_cliente(self, idcliente: str):
-        return self.session.query(ClienteProcesoModel).filter_by(idcliente=idcliente).all()
+    def listar_por_cliente(self, cliente_id: str):
+        return self.session.query(ClienteProcesoModel).filter_by(cliente_id=cliente_id).all()

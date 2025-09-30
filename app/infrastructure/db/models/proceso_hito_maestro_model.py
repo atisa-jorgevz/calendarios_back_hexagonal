@@ -8,8 +8,8 @@ class ProcesoHitoMaestroModel(Base):
     __tablename__ = "proceso_hito_maestro"
 
     id = Column(Integer, primary_key=True, index=True)
-    id_proceso = Column(Integer, ForeignKey("proceso.id"), nullable=False)
-    id_hito = Column(Integer, ForeignKey("hito.id"), nullable=False)
+    proceso_id = Column(Integer, ForeignKey("proceso.id"), nullable=False)
+    hito_id = Column(Integer, ForeignKey("hito.id"), nullable=False)
 
     proceso = relationship("ProcesoModel", back_populates="hitos")
     hito = relationship("HitoModel", back_populates="procesos")

@@ -49,9 +49,9 @@ class ClienteProcesoHitoRepositorySQL(ClienteProcesoHitoRepository):
         # Buscar cualquier registro en cliente_proceso_hito que referencie al hito a través de proceso_hito_maestro
         resultado = self.session.query(ClienteProcesoHitoModel).join(
             ProcesoHitoMaestroModel,
-            ClienteProcesoHitoModel.hito_id == ProcesoHitoMaestroModel.id_hito
+            ClienteProcesoHitoModel.hito_id == ProcesoHitoMaestroModel.hito_id
         ).filter(
-            ProcesoHitoMaestroModel.id_hito == hito_id
+            ProcesoHitoMaestroModel.hito_id == hito_id
         ).first()
 
         return resultado is not None
@@ -62,7 +62,7 @@ class ClienteProcesoHitoRepositorySQL(ClienteProcesoHitoRepository):
 
         # Obtener los IDs de proceso_hito_maestro que referencian al hito
         proceso_hito_ids = self.session.query(ProcesoHitoMaestroModel.id).filter(
-            ProcesoHitoMaestroModel.id_hito == hito_id
+            ProcesoHitoMaestroModel.hito_id == hito_id
         ).all()
 
         if proceso_hito_ids:

@@ -48,13 +48,13 @@ def get(id: int, repo = Depends(get_repo)):
         raise HTTPException(status_code=404, detail="No encontrado")
     return cliente_proceso
 
-@router.get("/cliente/{idcliente}")
-def get_por_cliente(idcliente: int,
+@router.get("/cliente/{cliente_id}")
+def get_por_cliente(cliente_id: str,
                     page: Optional[int] = Query(None, ge=1, description="Página actual"),
                     limit: Optional[int] = Query(None, ge=1, le=100, description="Cantidad de resultados por página"),
                     repo = Depends(get_repo)):
 
-    cliente_procesos = repo.listar_por_cliente(idcliente)
+    cliente_procesos = repo.listar_por_cliente(cliente_id)
     total = len(cliente_procesos)
 
     if page is not None and limit is not None:
@@ -82,5 +82,5 @@ def generar_calendario_cliente_by_proceso(request: GenerarClienteProcesoRequest,
                                         proceso_repo = Depends(get_repo_proceso),
                                         repo_proceso_hito_maestro = Depends(get_repo_proceso_hito_maestro),
                                         repo_cliente_proceso_hito = Depends(get_repo_cliente_proceso_hito)):
-    proceso_maestro = proceso_repo.obtener_por_id(request.id_proceso) #esto podria hacerse tambien en vez de mediante el repo, con el caso de uso...
+    proceso_maestro = proceso_repo.obtener_por_id(request.proceso_id) #esto podria hacerse tambien en vez de mediante el repo, con el caso de uso...
     return generar_calendario_cliente_proceso(request,proceso_maestro, repo,repo_proceso_hito_maestro, repo_cliente_proceso_hito)

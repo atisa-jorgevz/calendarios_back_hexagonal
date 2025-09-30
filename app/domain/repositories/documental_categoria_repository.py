@@ -21,7 +21,7 @@ class DocumentalCategoriaRepository(ABC):
         pass
 
     @abstractmethod
-    def obtener_por_cliente(self, id_cliente: str) -> List[DocumentalCategoria]:
+    def obtener_por_cliente(self, cliente_id: str) -> List[DocumentalCategoria]:
         pass
 
     @abstractmethod

@@ -2,7 +2,7 @@ from pydantic import BaseModel
 from typing import Optional
 
 class DocumentalCategoriaCreate(BaseModel):
-    id_cliente: str
+    cliente_id: str
     nombre: str
 
 class DocumentalCategoriaUpdate(BaseModel):
@@ -10,7 +10,7 @@ class DocumentalCategoriaUpdate(BaseModel):
 
 class DocumentalCategoriaResponse(BaseModel):
     id: int
-    id_cliente: str
+    cliente_id: str
     nombre: str
 
     class Config:

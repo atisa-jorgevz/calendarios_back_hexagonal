@@ -2,23 +2,23 @@ from pydantic import BaseModel
 from typing import Optional
 
 class DocumentalDocumentosCreate(BaseModel):
-    id_cliente: str
-    id_categoria: int
+    cliente_id: str
+    categoria_id: int
     nombre_documento: str
     original_file_name: str
     stored_file_name: str
 
 class DocumentalDocumentosUpdate(BaseModel):
-    id_cliente: Optional[str] = None
-    id_categoria: Optional[int] = None
+    cliente_id: Optional[str] = None
+    categoria_id: Optional[int] = None
     nombre_documento: Optional[str] = None
     original_file_name: Optional[str] = None
     stored_file_name: Optional[str] = None
 
 class DocumentalDocumentosResponse(BaseModel):
     id: int
-    id_cliente: str
-    id_categoria: int
+    cliente_id: str
+    categoria_id: int
     nombre_documento: str
     original_file_name: str
     stored_file_name: str

@@ -36,13 +36,13 @@ class ActualizarDocumentoUseCase:
             raise ValueError(f"Documento {id_documento} no existe")
 
         # 1) Mismo flujo para sacar cif
-        cph = self.cph_repo.obtener_por_id(existente.id_cliente_proceso_hito)
+        cph = self.cph_repo.obtener_por_id(existente.cliente_proceso_hito_id)
         if not cph:
             raise ValueError(...)
         cp = self.cp_repo.obtener_por_id(cph.cliente_proceso_id)
         if not cp:
             raise ValueError(...)
-        cliente = self.cliente_repo.obtener_por_id(cp.idcliente)
+        cliente = self.cliente_repo.obtener_por_id(cp.cliente_id)
         if not cliente:
             raise ValueError(...)
         cif = cliente.cif

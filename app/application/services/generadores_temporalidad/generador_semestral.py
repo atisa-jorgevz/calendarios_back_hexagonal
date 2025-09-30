@@ -60,13 +60,13 @@ class GeneradorSemestral(GeneradorTemporalidad):
 
             cliente_proceso = ClienteProceso(
                 id=None,
-                idcliente=data.idcliente,
-                id_proceso=data.id_proceso,
+                cliente_id=data.cliente_id,
+                proceso_id=data.proceso_id,
                 fecha_inicio=fecha_inicio_real,
                 fecha_fin=fecha_fin_real,
                 mes=mes_inicio,
                 anio=anio,
-                id_anterior=None
+                anterior_id=None
             )
             procesos_creados.append(repo.guardar(cliente_proceso))
 

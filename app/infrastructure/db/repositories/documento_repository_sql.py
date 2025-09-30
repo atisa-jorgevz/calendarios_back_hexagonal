@@ -26,7 +26,7 @@ class SQLDocumentoRepository(DocumentoRepositoryPort):
 
     def create(self, doc: Documento) -> Documento:
         modelo = DocumentoModel(
-            id_cliente_proceso_hito=doc.id_cliente_proceso_hito,
+            cliente_proceso_hito_id=doc.cliente_proceso_hito_id,
             nombre_documento        = doc.nombre_documento,
             original_file_name        = doc.original_file_name,
             stored_file_name          = doc.stored_file_name
@@ -65,7 +65,7 @@ class SQLDocumentoRepository(DocumentoRepositoryPort):
     def _to_entity(self, m: DocumentoModel) -> Documento:
         return Documento(
             id                         = m.id,
-            id_cliente_proceso_hito    = m.id_cliente_proceso_hito,
+            cliente_proceso_hito_id    = m.cliente_proceso_hito_id,
             nombre_documento           = m.nombre_documento,
             original_file_name         = m.original_file_name,
             stored_file_name           = m.stored_file_name

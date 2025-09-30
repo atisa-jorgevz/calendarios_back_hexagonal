@@ -9,7 +9,7 @@ class ClienteProcesoHitoModel(Base):
 
     id = Column(Integer, primary_key=True, index=True)
     cliente_proceso_id = Column(Integer, ForeignKey("cliente_proceso.id"), nullable=False)
-    hito_id = Column(Integer, ForeignKey("proceso_hito_maestro.id_hito"), nullable=False)
+    hito_id = Column(Integer, ForeignKey("proceso_hito_maestro.hito_id"), nullable=False)
     estado = Column(String(50), nullable=False)
     fecha_estado = Column(DateTime, nullable=True)
     fecha_inicio = Column(Date, nullable=False)
@@ -20,4 +20,4 @@ class ClienteProcesoHitoModel(Base):
     cliente_proceso = relationship("ClienteProcesoModel", backref="hitos_cliente")
     hito = relationship("ProcesoHitoMaestroModel",
                        foreign_keys=[hito_id],
-                       primaryjoin="ClienteProcesoHitoModel.hito_id == ProcesoHitoMaestroModel.id_hito")
+                       primaryjoin="ClienteProcesoHitoModel.hito_id == ProcesoHitoMaestroModel.hito_id")

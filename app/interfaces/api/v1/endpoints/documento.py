@@ -75,7 +75,7 @@ def obtener_documento(
 
 @router.post("/", response_model=DocumentoResponse)
 async def crear_documento(
-    id_cliente_proceso_hito: int = Form(...),
+    cliente_proceso_hito_id: int = Form(...),
     nombre_documento: str = Form(...),
     file: UploadFile = File(...),
     repo_doc: DocumentoRepository          = Depends(get_repo),
@@ -94,7 +94,7 @@ async def crear_documento(
     contenido = await file.read()
     try:
         return uc.execute(
-            id_cliente_proceso_hito=id_cliente_proceso_hito,
+            cliente_proceso_hito_id=cliente_proceso_hito_id,
             nombre_documento=nombre_documento,
             original_file_name=file.filename,
             content=contenido

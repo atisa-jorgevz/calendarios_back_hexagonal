@@ -88,8 +88,8 @@ def obtener_por_id(
 
 @router.post("/", summary="Crear documento", description="Crea un nuevo documento en el sistema.")
 async def crear_documento(
-    id_cliente: str = Form(...),
-    id_categoria: int = Form(...),
+    cliente_id: str = Form(...),
+    categoria_id: int = Form(...),
     nombre_documento: str = Form(...),
     file: UploadFile = File(...),
     repo = Depends(get_repo),
@@ -108,8 +108,8 @@ async def crear_documento(
 
     try:
         return uc.execute(
-            id_cliente=id_cliente,
-            id_categoria=id_categoria,
+            cliente_id=cliente_id,
+            categoria_id=categoria_id,
             nombre_documento=nombre_documento,
             original_file_name=file.filename,
             content=contenido
@@ -132,7 +132,7 @@ async def actualizar(
         raise HTTPException(status_code=404, detail="Documento no encontrado")
 
     # Obtener el cliente para usar su CIF
-    cliente = cliente_repo.obtener_por_id(documento_existente.id_cliente)
+    cliente = cliente_repo.obtener_por_id(documento_existente.cliente_id)
     if not cliente:
         raise HTTPException(status_code=404, detail="Cliente no encontrado")
 
@@ -157,14 +157,14 @@ async def actualizar(
             # Eliminar archivo anterior usando CIF del cliente
             storage.delete_with_category(
                 cliente.cif,  # Usar CIF en lugar de ID del cliente
-                str(documento_existente.id_categoria),
+                str(documento_existente.categoria_id),
                 documento_existente.stored_file_name
             )
 
             # Guardar nuevo archivo usando CIF del cliente
             storage.save_with_category(
                 cliente.cif,  # Usar CIF en lugar de ID del cliente
-                str(documento_existente.id_categoria),
+                str(documento_existente.categoria_id),
                 nuevo_stored_name,
                 nuevo_contenido
             )
@@ -196,7 +196,7 @@ def eliminar(
         raise HTTPException(status_code=404, detail="Documento no encontrado")
 
     # Obtener el cliente para usar su CIF
-    cliente = cliente_repo.obtener_por_id(documento.id_cliente)
+    cliente = cliente_repo.obtener_por_id(documento.cliente_id)
     if not cliente:
         raise HTTPException(status_code=404, detail="Cliente no encontrado")
 
@@ -204,7 +204,7 @@ def eliminar(
         # Eliminar el archivo físico usando la nueva estructura de carpetas y CIF del cliente
         storage.delete_with_category(
             cliente.cif,  # Usar CIF en lugar de ID del cliente
-            str(documento.id_categoria),
+            str(documento.categoria_id),
             documento.stored_file_name
         )
 
@@ -214,15 +214,15 @@ def eliminar(
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"Error al eliminar archivo: {str(e)}")
 
-@router.get("/cliente/{id_cliente}/categoria/{id_categoria}",
+@router.get("/cliente/{cliente_id}/categoria/{categoria_id}",
            summary="Obtener documentos por cliente y categoría",
            description="Devuelve todos los documentos de un cliente en una categoría específica.")
 def obtener_por_cliente_categoria(
-    id_cliente: str = Path(..., description="ID del cliente"),
-    id_categoria: int = Path(..., description="ID de la categoría"),
+    cliente_id: str = Path(..., description="ID del cliente"),
+    categoria_id: int = Path(..., description="ID de la categoría"),
     repo = Depends(get_repo)
 ):
-    documentos = repo.obtener_por_cliente_categoria(id_cliente, id_categoria)
+    documentos = repo.obtener_por_cliente_categoria(cliente_id, categoria_id)
     if not documentos:
         return {"total": 0, "documentos": []}
 
@@ -246,7 +246,7 @@ async def descargar_documento(
 
     try:
         # Obtener el cliente para usar su CIF
-        cliente = cliente_repo.obtener_por_id(documento.id_cliente)
+        cliente = cliente_repo.obtener_por_id(documento.cliente_id)
         if not cliente:
             raise HTTPException(status_code=404, detail="Cliente no encontrado")
 
@@ -260,7 +260,7 @@ async def descargar_documento(
         file_path = os.path.join(
             storage_root,
             str(cliente.cif).strip(),# Usar CIF en lugar de ID del cliente y limpiar espacios en blanco
-            str(documento.id_categoria),
+            str(documento.categoria_id),
             documento.stored_file_name
         )
 
@@ -272,8 +272,8 @@ async def descargar_documento(
                 "ruta_buscada": file_path,
                 "storage_root": storage_root,
                 "cif_cliente": cliente.cif,
-                "id_cliente": documento.id_cliente,
-                "id_categoria": documento.id_categoria,
+                "cliente_id": documento.cliente_id,
+                "categoria_id": documento.categoria_id,
                 "stored_file_name": documento.stored_file_name,
                 "directorio_existe": os.path.exists(os.path.dirname(file_path))
             }
@@ -324,7 +324,7 @@ def verificar_documento(
 
     try:
         # Obtener el cliente para usar su CIF
-        cliente = cliente_repo.obtener_por_id(documento.id_cliente)
+        cliente = cliente_repo.obtener_por_id(documento.cliente_id)
         if not cliente:
             raise HTTPException(status_code=404, detail="Cliente no encontrado")
 
@@ -338,7 +338,7 @@ def verificar_documento(
         file_path = os.path.join(
             storage_root,
             cliente.cif,  # Usar CIF en lugar de ID del cliente
-            str(documento.id_categoria),
+            str(documento.categoria_id),
             documento.stored_file_name
         )
 
@@ -346,9 +346,9 @@ def verificar_documento(
         info = {
             "documento": {
                 "id": documento.id,
-                "id_cliente": documento.id_cliente,
+                "cliente_id": documento.cliente_id,
                 "cif_cliente": cliente.cif,
-                "id_categoria": documento.id_categoria,
+                "categoria_id": documento.categoria_id,
                 "nombre_documento": documento.nombre_documento,
                 "original_file_name": documento.original_file_name,
                 "stored_file_name": documento.stored_file_name
@@ -363,7 +363,7 @@ def verificar_documento(
                 "FILE_STORAGE_ROOT": settings.FILE_STORAGE_ROOT,
                 "storage_root_limpio": storage_root,
                 "directorio_cliente_existe": os.path.exists(os.path.join(storage_root, cliente.cif)),
-                "directorio_categoria_existe": os.path.exists(os.path.join(storage_root, cliente.cif, str(documento.id_categoria)))
+                "directorio_categoria_existe": os.path.exists(os.path.join(storage_root, cliente.cif, str(documento.categoria_id)))
             }
         }
 

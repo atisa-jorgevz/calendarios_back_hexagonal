@@ -18,12 +18,12 @@ def generar_calendario_cliente_proceso(
 
     # Crear hitos para cada ClienteProceso generado
     for cliente_proceso in resultado.get("procesos", []):
-        hitos_maestros = repo_hito_maestro.listar_por_proceso(cliente_proceso.id_proceso)
+        hitos_maestros = repo_hito_maestro.listar_por_proceso(cliente_proceso.proceso_id)
         for proceso_hito_maestro, hito_data in hitos_maestros:
             nuevo_hito = ClienteProcesoHito(
                 id=None,
                 cliente_proceso_id=cliente_proceso.id,
-                hito_id=hito_data.id,  # ID del hito (que coincide con proceso_hito_maestro.id_hito)
+                hito_id=hito_data.id,  # ID del ProcesoHitoMaestroModel
                 estado="Nuevo",
                 fecha_inicio=cliente_proceso.fecha_inicio,
                 fecha_fin=None,
