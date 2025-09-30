@@ -30,7 +30,8 @@ from app.interfaces.api.v1.endpoints import (
     documental_documentos,
     documento_metadato,
     subdepar,
-    metricas
+    metricas,
+    auditoria_calendarios
 )
 
 
@@ -39,7 +40,9 @@ origins = [
     "http://localhost:5173",
     "http://localhost:3000",      # frontend local
     "http://127.0.0.1:3000",
-    "http://10.150.22.15:5173",   # IP local
+    "http://10.150.22.15:5173",   # IP local frontend
+    "http://10.150.22.15:8049",   # IP local backend
+    "http://gestorcalendarios.test"
     # "https://tu-front-en-produccion.com",  <-- producción
 ]
 
@@ -82,6 +85,7 @@ app.include_router(documento_metadato.router,   dependencies=[Depends(get_curren
 app.include_router(metadatos_area.router,       dependencies=[Depends(get_current_user)])
 app.include_router(subdepar.router,             dependencies=[Depends(get_current_user)])
 app.include_router(metricas.router,             dependencies=[Depends(get_current_user)])
+app.include_router(auditoria_calendarios.router, dependencies=[Depends(get_current_user)])
 
 
 # --- Health check opcional ---
