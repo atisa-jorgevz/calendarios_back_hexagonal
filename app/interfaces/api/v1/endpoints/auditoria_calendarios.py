@@ -118,19 +118,38 @@ def obtener_por_cliente(
     sort_direction: Optional[str] = Query("desc", regex="^(asc|desc)$", description="Dirección de ordenación: asc o desc"),
     repo = Depends(get_repo)
 ):
-    auditorias = repo.obtener_por_cliente(cliente_id)
-    total = len(auditorias)
+    resultados = repo.obtener_por_cliente(cliente_id)
+    total = len(resultados)
+
+    # Procesar los resultados para incluir el nombre del hito
+    auditorias = []
+    for auditoria_model, nombre_hito in resultados:
+        auditoria_dict = {
+            "id": auditoria_model.id,
+            "cliente_id": auditoria_model.cliente_id,
+            "hito_id": auditoria_model.hito_id,
+            "nombre_hito": nombre_hito,
+            "campo_modificado": auditoria_model.campo_modificado,
+            "valor_anterior": auditoria_model.valor_anterior,
+            "valor_nuevo": auditoria_model.valor_nuevo,
+            "usuario_modificacion": auditoria_model.usuario_modificacion,
+            "fecha_modificacion": auditoria_model.fecha_modificacion,
+            "observaciones": auditoria_model.observaciones,
+            "created_at": auditoria_model.created_at,
+            "updated_at": auditoria_model.updated_at
+        }
+        auditorias.append(auditoria_dict)
 
     # Aplicar ordenación si se especifica y hay datos para ordenar
-    if sort_field and auditorias and hasattr(auditorias[0], sort_field):
+    if sort_field and auditorias and sort_field in auditorias[0]:
         reverse = sort_direction == "desc"
 
         # Función de ordenación que maneja valores None
         def sort_key(auditoria):
-            value = getattr(auditoria, sort_field, None)
+            value = auditoria.get(sort_field)
 
             # Manejo especial para diferentes tipos de campos
-            if sort_field in ["id", "id_hito"]:
+            if sort_field in ["id", "hito_id"]:
                 if value is None:
                     return -1 if not reverse else float('inf')
                 try:

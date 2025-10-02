@@ -2,6 +2,9 @@ from datetime import datetime
 from app.domain.entities.auditoria_calendarios import AuditoriaCalendarios
 from app.domain.repositories.auditoria_calendarios_repository import AuditoriaCalendariosRepository
 from app.infrastructure.db.models.auditoria_calendarios_model import AuditoriaCalendariosModel
+from app.infrastructure.db.models.hito_model import HitoModel
+from app.infrastructure.db.models.cliente_proceso_hito_model import ClienteProcesoHitoModel
+from app.infrastructure.db.models.proceso_hito_maestro_model import ProcesoHitoMaestroModel
 
 
 class AuditoriaCalendariosRepositorySQL(AuditoriaCalendariosRepository):
@@ -38,7 +41,16 @@ class AuditoriaCalendariosRepositorySQL(AuditoriaCalendariosRepository):
         return self.session.query(AuditoriaCalendariosModel).filter_by(hito_id=id_hito).all()
 
     def obtener_por_cliente(self, cliente_id: str):
-        return self.session.query(AuditoriaCalendariosModel).filter_by(cliente_id=cliente_id).all()
+        return self.session.query(
+            AuditoriaCalendariosModel,
+            HitoModel.nombre.label('nombre_hito')
+        ).join(
+            ClienteProcesoHitoModel, AuditoriaCalendariosModel.hito_id == ClienteProcesoHitoModel.id
+        ).join(
+            ProcesoHitoMaestroModel, ClienteProcesoHitoModel.hito_id == ProcesoHitoMaestroModel.hito_id
+        ).join(
+            HitoModel, ProcesoHitoMaestroModel.hito_id == HitoModel.id
+        ).filter(AuditoriaCalendariosModel.cliente_id == cliente_id).all()
 
     # Implementación de métodos async del repositorio base
     async def create(self, auditoria: AuditoriaCalendarios) -> AuditoriaCalendarios:
