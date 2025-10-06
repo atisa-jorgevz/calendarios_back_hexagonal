@@ -7,11 +7,11 @@ class HitoModel(Base):
 
     id = Column(Integer, primary_key=True, index=True)
     nombre = Column(String(255), nullable=False)
-    fecha_inicio = Column(Date, nullable=False)
-    fecha_fin = Column(Date, nullable=True)
+    fecha_limite = Column(Date, nullable=False)
     hora_limite = Column(Time, nullable=True)
     descripcion = Column(String(255), nullable=True)
     obligatorio = Column(Integer, nullable=False, default=0)  # 0 = No, 1 = Si
     tipo = Column(String(255), nullable=False)
+    habilitado = Column(Integer, nullable=False, default=1)  # 0 = No, 1 = Si
 
     procesos = relationship("ProcesoHitoMaestroModel", back_populates="hito", cascade="all, delete-orphan")

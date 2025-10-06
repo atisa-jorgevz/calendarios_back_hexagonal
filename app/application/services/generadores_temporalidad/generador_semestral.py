@@ -16,64 +16,69 @@ class GeneradorSemestral(GeneradorTemporalidad):
         if not hitos_maestros:
             raise ValueError(f"No se encontraron hitos para el proceso {proceso_maestro.id}")
 
-        # Ordenar hitos por fecha de inicio para obtener el primero y último
-        hitos_ordenados = sorted(hitos_maestros, key=lambda x: x[1].fecha_inicio)
+        # Ordenar hitos por fecha límite para obtener el primero y último
+        hitos_ordenados = sorted(hitos_maestros, key=lambda x: x[1].fecha_limite or date.today())
         primer_hito = hitos_ordenados[0][1]  # HitoModel
         ultimo_hito = hitos_ordenados[-1][1]  # HitoModel
 
-        # Usar el año de la fecha de inicio del primer hito como base
-        anio = primer_hito.fecha_inicio.year
-
-        # Comenzar desde enero del año del primer hito
-        # Si no hay fecha_inicio en el request, usar el día del primer hito
+        # Determinar fecha de inicio: prioridad a data.fecha_inicio (respetando el día exacto)
         if hasattr(data, 'fecha_inicio') and data.fecha_inicio:
-            dia_inicio = data.fecha_inicio.day
+            dia_inicio_deseado = data.fecha_inicio.day
+            anio = data.fecha_inicio.year
+            mes_inicio_proceso = data.fecha_inicio.month
         else:
-            dia_inicio = primer_hito.fecha_inicio.day
+            # Usar año/mes/día del primer hito como base (si no, día 1)
+            anio = primer_hito.fecha_limite.year if primer_hito.fecha_limite else date.today().year
+            mes_inicio_proceso = primer_hito.fecha_limite.month if primer_hito.fecha_limite else 1
+            dia_inicio_deseado = primer_hito.fecha_limite.day if primer_hito.fecha_limite else 1
+        _, last_day_inicio = monthrange(anio, mes_inicio_proceso)
+        fecha_inicio_proceso = date(anio, mes_inicio_proceso, min(dia_inicio_deseado, last_day_inicio))
 
-        fecha_actual = date(anio, 1, dia_inicio)
+        # La fecha de fin será la fecha límite del último hito
+        fecha_fin_proceso = ultimo_hito.fecha_limite if ultimo_hito.fecha_limite else date(anio, 12, 31)
 
-        while fecha_actual.year == anio and fecha_actual.month <= 12:
-            mes_inicio = fecha_actual.month
-            _, last_day_inicio = monthrange(anio, mes_inicio)
-            fecha_inicio = date(anio, mes_inicio, min(fecha_actual.day, last_day_inicio))
+        # Generar procesos semestrales desde el mes de inicio hasta el mes de fin
+        fecha_actual = fecha_inicio_proceso
+
+        while fecha_actual <= fecha_fin_proceso:
+            # Fecha de inicio del semestre actual respetando día deseado
+            _, last_day_inicio = monthrange(fecha_actual.year, fecha_actual.month)
+            fecha_inicio = date(fecha_actual.year, fecha_actual.month, min(dia_inicio_deseado, last_day_inicio))
 
             # Un semestre son 6 meses, así que el mes final será mes_inicio + 5
-            mes_fin = min(mes_inicio + 5, 12)
-            _, last_day_fin = monthrange(anio, mes_fin)
-            fecha_fin = date(anio, mes_fin, last_day_fin)
+            mes_fin = min(fecha_actual.month + 5, 12)
+            _, last_day_fin = monthrange(fecha_actual.year, mes_fin)
+            fecha_fin = date(fecha_actual.year, mes_fin, last_day_fin)
 
-            # Ajustar fechas basándose en los hitos del proceso
-            # El primer hito define la fecha de inicio real del proceso
-            if primer_hito.fecha_inicio:
-                # Usar el día del primer hito pero del mes calculado
-                fecha_inicio_real = date(anio, mes_inicio, min(primer_hito.fecha_inicio.day, last_day_inicio))
-            else:
-                fecha_inicio_real = fecha_inicio
-
-            # El último hito define la fecha de fin real del proceso
-            if ultimo_hito.fecha_fin:
-                # Usar el día del último hito pero del mes calculado
-                fecha_fin_real = date(anio, mes_fin, min(ultimo_hito.fecha_fin.day, last_day_fin))
-            else:
-                fecha_fin_real = fecha_fin
+            # Si es el último semestre, usar la fecha límite del último hito
+            if fecha_actual.month + 5 >= fecha_fin_proceso.month and fecha_actual.year == fecha_fin_proceso.year:
+                fecha_fin = fecha_fin_proceso
 
             cliente_proceso = ClienteProceso(
                 id=None,
                 cliente_id=data.cliente_id,
                 proceso_id=data.proceso_id,
-                fecha_inicio=fecha_inicio_real,
-                fecha_fin=fecha_fin_real,
-                mes=mes_inicio,
-                anio=anio,
+                fecha_inicio=fecha_inicio,
+                fecha_fin=fecha_fin,
+                mes=fecha_actual.month,
+                anio=fecha_actual.year,
                 anterior_id=None
             )
             procesos_creados.append(repo.guardar(cliente_proceso))
 
             # Avanzar 6 meses para el siguiente semestre
-            if mes_inicio + 6 > 12:
+            if fecha_actual.month + 6 > 12:
+                # Si el siguiente semestre sería en el próximo año
+                if fecha_actual.year + 1 <= fecha_fin_proceso.year:
+                    fecha_actual = date(fecha_actual.year + 1, (fecha_actual.month + 6) - 12, 1)
+                else:
+                    break
+            else:
+                fecha_actual = date(fecha_actual.year, fecha_actual.month + 6, 1)
+
+            # Si hemos pasado la fecha de fin, terminar
+            if fecha_actual > fecha_fin_proceso:
                 break
-            fecha_actual = date(anio, mes_inicio + 6, 1)
 
         return {
             "mensaje": "Procesos cliente generados con éxito",

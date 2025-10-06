@@ -58,12 +58,12 @@ def construir_sql_procesos_cliente_por_empleado(filtrar_fecha=False, filtrar_mes
 def construir_sql_hitos_cliente_por_empleado(filtrar_fecha=False, filtrar_mes=False, filtrar_anio=False):
     filtros = []
     if filtrar_fecha:
-        filtros.append("cph.fecha_inicio >= :fecha_inicio")
-        filtros.append("cph.fecha_inicio <= :fecha_fin")
+        filtros.append("cph.fecha_limite >= :fecha_inicio")
+        filtros.append("cph.fecha_limite <= :fecha_fin")
     if filtrar_mes:
-        filtros.append("MONTH(cph.fecha_inicio) = :mes")
+        filtros.append("MONTH(cph.fecha_limite) = :mes")
     if filtrar_anio:
-        filtros.append("YEAR(cph.fecha_inicio) = :anio")
+        filtros.append("YEAR(cph.fecha_limite) = :anio")
 
     where_extra = " AND " + " AND ".join(filtros) if filtros else ""
 
@@ -77,8 +77,7 @@ def construir_sql_hitos_cliente_por_empleado(filtrar_fecha=False, filtrar_mes=Fa
       cp.fecha_fin,
       h.id AS hito_id,
       h.nombre AS hito_nombre,
-      cph.fecha_inicio as fecha_inicio_hito,
-      cph.fecha_fin as fecha_fin_hito
+      cph.fecha_limite as fecha_limite_hito
     FROM mis_clientes mc
     JOIN [ATISA_Input].dbo.clientes c ON c.idcliente = mc.id_cliente
     JOIN [ATISA_Input].dbo.cliente_proceso cp ON cp.idcliente = c.idcliente

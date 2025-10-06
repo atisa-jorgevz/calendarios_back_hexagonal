@@ -4,7 +4,8 @@ from app.domain.repositories.cliente_proceso_hito_repository import ClienteProce
 from app.domain.entities.proceso import Proceso
 from app.application.services.generadores_temporalidad.factory import obtener_generador
 from app.domain.entities.cliente_proceso_hito import ClienteProcesoHito
-from datetime import datetime
+from datetime import datetime, date
+from calendar import monthrange
 
 def generar_calendario_cliente_proceso(
     data,
@@ -20,16 +21,22 @@ def generar_calendario_cliente_proceso(
     for cliente_proceso in resultado.get("procesos", []):
         hitos_maestros = repo_hito_maestro.listar_por_proceso(cliente_proceso.proceso_id)
         for proceso_hito_maestro, hito_data in hitos_maestros:
+            # Fecha límite del hito replicada en el mes/año del periodo
+            base_year = cliente_proceso.fecha_fin.year if cliente_proceso.fecha_fin else cliente_proceso.fecha_inicio.year
+            base_month = cliente_proceso.fecha_fin.month if cliente_proceso.fecha_fin else cliente_proceso.fecha_inicio.month
+            dia_hito = hito_data.fecha_limite.day if hito_data.fecha_limite else 1
+            _, last_day = monthrange(base_year, base_month)
+            fecha_limite_instancia = date(base_year, base_month, min(dia_hito, last_day))
+
             nuevo_hito = ClienteProcesoHito(
                 id=None,
                 cliente_proceso_id=cliente_proceso.id,
-                hito_id=hito_data.id,  # ID del ProcesoHitoMaestroModel
+                hito_id=hito_data.id,
                 estado="Nuevo",
-                fecha_inicio=cliente_proceso.fecha_inicio,
-                fecha_fin=None,
-                hora_limite=hito_data.hora_limite,  # Del HitoModel
+                fecha_limite=fecha_limite_instancia,
+                hora_limite=hito_data.hora_limite,
                 fecha_estado=datetime.utcnow(),
-                tipo=hito_data.tipo  # Del HitoModel
+                tipo=hito_data.tipo
             )
             repo_hito_cliente.guardar(nuevo_hito)
 

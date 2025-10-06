@@ -28,15 +28,15 @@ def get_repo_proceso_hito_maestro(db: Session = Depends(get_db)):
     return ProcesoHitoMaestroRepositorySQL(db)
 
 @router.post("/", summary="Crear un nuevo hito",
-    description="Crea un nuevo hito especificando nombre, fechas y si es obligatorio.")
+    description="Crea un nuevo hito especificando nombre, fecha límite, si es obligatorio y si está habilitado.")
 def crear(
     data: dict = Body(..., example={
         "nombre": "Recibir documentos",
-        "fecha_inicio": "2023-01-01",
-        "fecha_fin": "2023-01-05",
+        "fecha_limite": "2023-01-05",
         "hora_limite": "12:00:00",
         "obligatorio": 1,
-        "tipo": "Atisa"
+        "tipo": "Atisa",
+        "habilitado": 1
     }),
     repo = Depends(get_repo)
 ):
@@ -47,23 +47,23 @@ def crear(
 
     hito = Hito(
         nombre=data.get("nombre"),
-        fecha_inicio=data.get("fecha_inicio"),
-        fecha_fin=data.get("fecha_fin"),
+        fecha_limite=data.get("fecha_limite"),
         hora_limite=hora_limite,
         descripcion=data.get("descripcion"),
         obligatorio=data.get("obligatorio", False),
-        tipo=data.get("tipo")
+        tipo=data.get("tipo"),
+        habilitado=data.get("habilitado", True)
     )
     return repo.guardar(hito)
 
 @router.get("/hitos-cliente-por-empleado", summary="Listar hitos por cliente/empleado",
-    description="Devuelve todos los hitos asociados a los procesos de clientes gestionados por un empleado. Filtrable por fecha de inicio, fin, mes y año.")
+    description="Devuelve todos los hitos asociados a los procesos de clientes gestionados por un empleado. Filtrable por fecha límite, mes y año.")
 def obtener_hitos_por_empleado(
     email: str = Query(..., description="Email del empleado"),
-    fecha_inicio: Optional[str] = Query(None, description="Fecha mínima (YYYY-MM-DD) de inicio del hito"),
-    fecha_fin: Optional[str] = Query(None, description="Fecha máxima (YYYY-MM-DD) de inicio del hito"),
-    mes: Optional[int] = Query(None, ge=1, le=12, description="Mes de inicio del hito (1-12)"),
-    anio: Optional[int] = Query(None, ge=2000, le=2100, description="Año de inicio del hito"),
+    fecha_inicio: Optional[str] = Query(None, description="Fecha mínima (YYYY-MM-DD) de fecha límite del hito"),
+    fecha_fin: Optional[str] = Query(None, description="Fecha máxima (YYYY-MM-DD) de fecha límite del hito"),
+    mes: Optional[int] = Query(None, ge=1, le=12, description="Mes de fecha límite del hito (1-12)"),
+    anio: Optional[int] = Query(None, ge=2000, le=2100, description="Año de fecha límite del hito"),
     repo = Depends(get_repo)
 ):
     return repo.listar_hitos_cliente_por_empleado(

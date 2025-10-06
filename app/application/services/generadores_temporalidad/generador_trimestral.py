@@ -16,29 +16,43 @@ class GeneradorTrimestral(GeneradorTemporalidad):
         if not hitos_maestros:
             raise ValueError(f"No se encontraron hitos para el proceso {proceso_maestro.id}")
 
-        # Ordenar hitos por fecha de inicio para obtener el primero y último
-        hitos_ordenados = sorted(hitos_maestros, key=lambda x: x[1].fecha_inicio)
+        # Ordenar hitos por fecha límite para obtener el primero y último
+        hitos_ordenados = sorted(hitos_maestros, key=lambda x: x[1].fecha_limite or date.today())
         primer_hito = hitos_ordenados[0][1]  # HitoModel
         ultimo_hito = hitos_ordenados[-1][1]  # HitoModel
 
-        # Usar el año de la fecha de inicio del primer hito como base
-        anio = primer_hito.fecha_inicio.year
-
-        # Comenzar desde enero del año del primer hito
-        # Si no hay fecha_inicio en el request, usar el día del primer hito
+        # Determinar fecha de inicio: prioridad a data.fecha_inicio (respetando el día exacto)
         if hasattr(data, 'fecha_inicio') and data.fecha_inicio:
-            fecha_actual = data.fecha_inicio
+            dia_inicio_deseado = data.fecha_inicio.day
+            anio = data.fecha_inicio.year
+            mes_inicio_proceso = data.fecha_inicio.month
         else:
-            fecha_actual = date(anio, 1, primer_hito.fecha_inicio.day)
+            # Usar año/mes/día del primer hito como base (si no, día 1)
+            anio = primer_hito.fecha_limite.year if primer_hito.fecha_limite else date.today().year
+            mes_inicio_proceso = primer_hito.fecha_limite.month if primer_hito.fecha_limite else 1
+            dia_inicio_deseado = primer_hito.fecha_limite.day if primer_hito.fecha_limite else 1
+        _, last_day_inicio = monthrange(anio, mes_inicio_proceso)
+        fecha_inicio_proceso = date(anio, mes_inicio_proceso, min(dia_inicio_deseado, last_day_inicio))
 
-        while fecha_actual.year == anio and fecha_actual.month <= 12:
-            mes_inicio = fecha_actual.month
-            _, last_day_inicio = monthrange(anio, mes_inicio)
-            fecha_inicio = date(anio, mes_inicio, min(fecha_actual.day, last_day_inicio))
+        # La fecha de fin será el fin de año del año de inicio
+        fecha_fin_proceso = date(anio, 12, 31)
 
-            mes_fin = min(mes_inicio + 2, 12)
-            _, last_day_fin = monthrange(anio, mes_fin)
-            fecha_fin = date(anio, mes_fin, last_day_fin)
+        # Generar procesos trimestrales desde el mes de inicio hasta el mes de fin
+        fecha_actual = fecha_inicio_proceso
+
+        while fecha_actual <= fecha_fin_proceso:
+            # Fecha de inicio del trimestre actual respetando día deseado
+            _, last_day_inicio = monthrange(fecha_actual.year, fecha_actual.month)
+            fecha_inicio = date(fecha_actual.year, fecha_actual.month, min(dia_inicio_deseado, last_day_inicio))
+
+            # Un trimestre son 3 meses, así que el mes final será mes_inicio + 2
+            mes_fin = min(fecha_actual.month + 2, 12)
+            _, last_day_fin = monthrange(fecha_actual.year, mes_fin)
+            fecha_fin = date(fecha_actual.year, mes_fin, last_day_fin)
+
+            # Si el periodo alcanza fin de año, ajustar a 31/12
+            if fecha_actual.year == fecha_fin_proceso.year and (fecha_actual.month + 2) >= 12:
+                fecha_fin = fecha_fin_proceso
 
             cliente_proceso = ClienteProceso(
                 id=None,
@@ -46,15 +60,25 @@ class GeneradorTrimestral(GeneradorTemporalidad):
                 proceso_id=data.proceso_id,
                 fecha_inicio=fecha_inicio,
                 fecha_fin=fecha_fin,
-                mes=mes_inicio,
-                anio=anio,
+                mes=fecha_actual.month,
+                anio=fecha_actual.year,
                 anterior_id=None
             )
             procesos_creados.append(repo.guardar(cliente_proceso))
 
-            if mes_inicio + 3 > 12:
+            # Avanzar 3 meses para el siguiente trimestre
+            if fecha_actual.month + 3 > 12:
+                # Si el siguiente trimestre sería en el próximo año
+                if fecha_actual.year + 1 <= fecha_fin_proceso.year:
+                    fecha_actual = date(fecha_actual.year + 1, (fecha_actual.month + 3) - 12, 1)
+                else:
+                    break
+            else:
+                fecha_actual = date(fecha_actual.year, fecha_actual.month + 3, 1)
+
+            # Si hemos pasado la fecha de fin, terminar
+            if fecha_actual > fecha_fin_proceso:
                 break
-            fecha_actual = date(anio, mes_inicio + 3, 1)
 
         return {
             "mensaje": "Procesos cliente generados con éxito",

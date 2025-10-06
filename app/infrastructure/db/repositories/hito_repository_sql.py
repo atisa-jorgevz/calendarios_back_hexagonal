@@ -85,8 +85,7 @@ class HitoRepositorySQL(HitoRepository):
             proc_map[pid]["hitos"].append({
                 "id": r["hito_id"],
                 "nombre": r["hito_nombre"],
-                "fecha_inicio": r["fecha_inicio_hito"],
-                "fecha_fin": r["fecha_fin_hito"]
+                "fecha_limite": r["fecha_limite_hito"]
             })
 
         resultado = []

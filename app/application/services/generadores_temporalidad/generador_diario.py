@@ -17,20 +17,21 @@ class GeneradorDiario(GeneradorTemporalidad):
         if not hitos_maestros:
             raise ValueError(f"No se encontraron hitos para el proceso {proceso_maestro.id}")
 
-        # Ordenar hitos por fecha de inicio para obtener el primero y último
-        hitos_ordenados = sorted(hitos_maestros, key=lambda x: x[1].fecha_inicio)
+        # Ordenar hitos por fecha límite para obtener el primero y último
+        hitos_ordenados = sorted(hitos_maestros, key=lambda x: x[1].fecha_limite or date.today())
         primer_hito = hitos_ordenados[0][1]  # HitoModel
         ultimo_hito = hitos_ordenados[-1][1]  # HitoModel
 
-        # Usar el año de la fecha de inicio del primer hito como base
-        anio = primer_hito.fecha_inicio.year
+        # Usar el año de fecha_inicio si existe; si no, del primer hito; si no, hoy
+        anio = (data.fecha_inicio.year if hasattr(data, 'fecha_inicio') and data.fecha_inicio else (primer_hito.fecha_limite.year if primer_hito.fecha_limite else date.today().year))
 
-        # Comenzar desde el primer día del año del primer hito
+        # Comenzar desde el primer día del año
         # Si no hay fecha_inicio en el request, usar el día del primer hito
         if hasattr(data, 'fecha_inicio') and data.fecha_inicio:
             fecha_actual = data.fecha_inicio
         else:
-            fecha_actual = date(anio, 1, primer_hito.fecha_inicio.day)
+            dia_inicio = primer_hito.fecha_limite.day if primer_hito.fecha_limite else 1
+            fecha_actual = date(anio, 1, dia_inicio)
 
         while fecha_actual.year == anio:
             fecha_inicio = fecha_actual

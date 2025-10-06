@@ -12,8 +12,7 @@ class ClienteProcesoHitoModel(Base):
     hito_id = Column(Integer, ForeignKey("proceso_hito_maestro.hito_id"), nullable=False)
     estado = Column(String(50), nullable=False)
     fecha_estado = Column(DateTime, nullable=True)
-    fecha_inicio = Column(Date, nullable=False)
-    fecha_fin = Column(Date, nullable=True)
+    fecha_limite = Column(Date, nullable=True)
     hora_limite = Column(Time, nullable=True)
     tipo = Column(String(255), nullable=False)
 

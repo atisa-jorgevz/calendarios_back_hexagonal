@@ -18,14 +18,13 @@ def get_repo(db: Session = Depends(get_db)):
     return ClienteProcesoHitoRepositorySQL(db)
 
 @router.post("/cliente-proceso-hitos", tags=["ClienteProcesoHito"], summary="Crear relación cliente-proceso-hito",
-    description="Crea una nueva relación entre un cliente, proceso e hito especificando los IDs correspondientes y fechas.")
+    description="Crea una nueva relación entre un cliente, proceso e hito especificando los IDs correspondientes y fecha límite.")
 def crear(
     data: dict = Body(..., example={
         "cliente_proceso_id": 1,
         "hito_id": 2,
         "estado": "pendiente",
-        "fecha_inicio": "2023-01-01",
-        "fecha_fin": "2023-01-05",
+        "fecha_limite": "2023-01-05",
         "fecha_estado": "2023-01-01",
         "hora_limite": "12:00:00",
         "tipo": "Atisa"
@@ -37,8 +36,7 @@ def crear(
         hito_id=data["hito_id"],
         estado=data["estado"],
         fecha_estado=data.get("fecha_estado"),
-        fecha_inicio=data["fecha_inicio"],
-        fecha_fin=data.get("fecha_fin"),
+        fecha_limite=data.get("fecha_limite"),
         hora_limite=data.get("hora_limite"),
         tipo=data["tipo"]
     )
