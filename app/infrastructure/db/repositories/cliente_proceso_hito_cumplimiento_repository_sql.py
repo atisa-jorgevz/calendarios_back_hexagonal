@@ -66,3 +66,22 @@ class ClienteProcesoHitoCumplimientoRepositorySQL(ClienteProcesoHitoCumplimiento
             ClienteProcesoHitoCumplimientoModel.cliente_proceso_hito_id == cliente_proceso_hito_id
         ).all()
         return modelos
+
+    def obtener_historial_por_cliente_id(self, cliente_id: str):
+        """Obtiene el historial de cumplimientos de un cliente con información completa de proceso e hito"""
+        from sqlalchemy import text
+
+        query = text("""
+            SELECT cpc.id, cpc.fecha, cpc.hora, cpc.usuario, cpc.observacion,
+                   p.nombre AS proceso, h.nombre AS hito, h.fecha_limite
+            FROM cliente_proceso_hito_cumplimiento cpc
+            JOIN cliente_proceso_hito cph ON cph.id = cpc.cliente_proceso_hito_id
+            JOIN cliente_proceso cp ON cp.id = cph.cliente_proceso_id
+            JOIN proceso p ON p.id = cp.proceso_id
+            JOIN hito h ON h.id = cph.hito_id
+            WHERE cp.cliente_id = :cliente_id
+            ORDER BY cpc.id DESC
+        """)
+
+        result = self.session.execute(query, {"cliente_id": cliente_id})
+        return result.fetchall()

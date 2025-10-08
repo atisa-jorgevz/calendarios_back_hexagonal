@@ -238,3 +238,51 @@ def eliminar(
     if not eliminado:
         raise HTTPException(status_code=404, detail="Cumplimiento no encontrado")
     return {"mensaje": "Cumplimiento eliminado exitosamente"}
+
+@router.get("/cliente/{cliente_id}", summary="Obtener historial de cumplimientos por cliente",
+    description="Devuelve el historial completo de cumplimientos de hitos para un cliente específico con información de proceso e hito.")
+def obtener_historial_por_cliente(
+    cliente_id: str = Path(..., description="ID del cliente para consultar su historial"),
+    page: Optional[int] = Query(None, ge=1, description="Página actual"),
+    limit: Optional[int] = Query(None, ge=1, le=100, description="Cantidad de resultados por página"),
+    repo = Depends(get_repo)
+):
+    try:
+        # Obtener el historial completo del cliente
+        historial_raw = repo.obtener_historial_por_cliente_id(cliente_id)
+
+        # Convertir los resultados a diccionarios para facilitar el manejo
+        historial = []
+        for row in historial_raw:
+            historial.append({
+                "id": row.id,
+                "fecha": row.fecha.isoformat() if row.fecha else None,
+                "hora": str(row.hora) if row.hora else None,
+                "usuario": row.usuario,
+                "observacion": row.observacion,
+                "proceso": row.proceso,
+                "hito": row.hito,
+                "fecha_limite": row.fecha_limite
+            })
+
+        total = len(historial)
+
+        # Aplicar paginación si se especifica
+        if page is not None and limit is not None:
+            start = (page - 1) * limit
+            end = start + limit
+            historial = historial[start:end]
+
+        if not historial:
+            raise HTTPException(status_code=404, detail=f"No se encontraron cumplimientos para el cliente {cliente_id}")
+
+        return {
+            "total": total,
+            "cliente_id": cliente_id,
+            "cumplimientos": historial
+        }
+
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Error interno del servidor: {str(e)}")
