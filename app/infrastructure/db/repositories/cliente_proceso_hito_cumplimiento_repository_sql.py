@@ -9,12 +9,18 @@ class ClienteProcesoHitoCumplimientoRepositorySQL(ClienteProcesoHitoCumplimiento
         self.session = session
 
     def guardar(self, cliente_proceso_hito_cumplimiento: ClienteProcesoHitoCumplimiento):
+        from datetime import datetime
+
         # Obtener todos los atributos de la entidad
         datos = vars(cliente_proceso_hito_cumplimiento)
 
         # Filtrar el campo 'id' si es None para evitar problemas con SQLAlchemy
         if datos.get('id') is None:
             datos.pop('id', None)
+
+        # Auto-rellenar fecha_creacion si no está definida
+        if datos.get('fecha_creacion') is None:
+            datos['fecha_creacion'] = datetime.utcnow()
 
         modelo = ClienteProcesoHitoCumplimientoModel(**datos)
         self.session.add(modelo)
@@ -72,8 +78,8 @@ class ClienteProcesoHitoCumplimientoRepositorySQL(ClienteProcesoHitoCumplimiento
         from sqlalchemy import text
 
         query = text("""
-            SELECT cpc.id, cpc.fecha, cpc.hora, cpc.usuario, cpc.observacion,
-                   p.nombre AS proceso, h.nombre AS hito, h.fecha_limite
+            SELECT cpc.id, cpc.fecha, cpc.hora, cpc.usuario, cpc.observacion, cpc.fecha_creacion,
+                   p.id as proceso_id, p.nombre AS proceso, h.id as hito_id, h.nombre AS hito, cph.fecha_limite
             FROM cliente_proceso_hito_cumplimiento cpc
             JOIN cliente_proceso_hito cph ON cph.id = cpc.cliente_proceso_hito_id
             JOIN cliente_proceso cp ON cp.id = cph.cliente_proceso_id

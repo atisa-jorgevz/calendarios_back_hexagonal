@@ -29,9 +29,9 @@ class MetricasService:
             COUNT(CASE WHEN cph.estado = 'Finalizado' THEN 1 END) AS hitos_completados
         FROM mis_clientes mc
         JOIN clientes c ON c.idcliente = mc.id_cliente
-        JOIN cliente_proceso cp ON cp.idcliente = c.idcliente
+        JOIN cliente_proceso cp ON cp.cliente_id = c.idcliente
         JOIN cliente_proceso_hito cph ON cph.cliente_proceso_id = cp.id
-        WHERE cph.fecha_inicio >= DATEADD(day, -30, GETDATE())
+        WHERE cph.fecha_limite >= DATEADD(day, -30, GETDATE())
         """
 
         # Consulta para 30 días anteriores (días 31-60)
@@ -41,10 +41,10 @@ class MetricasService:
             COUNT(CASE WHEN cph.estado = 'Finalizado' THEN 1 END) AS hitos_completados
         FROM mis_clientes mc
         JOIN clientes c ON c.idcliente = mc.id_cliente
-        JOIN cliente_proceso cp ON cp.idcliente = c.idcliente
+        JOIN cliente_proceso cp ON cp.cliente_id = c.idcliente
         JOIN cliente_proceso_hito cph ON cph.cliente_proceso_id = cp.id
-        WHERE cph.fecha_inicio >= DATEADD(day, -60, GETDATE())
-          AND cph.fecha_inicio < DATEADD(day, -30, GETDATE())
+        WHERE cph.fecha_limite >= DATEADD(day, -60, GETDATE())
+          AND cph.fecha_limite < DATEADD(day, -30, GETDATE())
         """
 
         # Consulta general para todos los hitos
@@ -54,7 +54,7 @@ class MetricasService:
             COUNT(CASE WHEN cph.estado = 'Finalizado' THEN 1 END) AS hitos_completados
         FROM mis_clientes mc
         JOIN clientes c ON c.idcliente = mc.id_cliente
-        JOIN cliente_proceso cp ON cp.idcliente = c.idcliente
+        JOIN cliente_proceso cp ON cp.cliente_id = c.idcliente
         JOIN cliente_proceso_hito cph ON cph.cliente_proceso_id = cp.id
         """
 
@@ -94,7 +94,7 @@ class MetricasService:
             COUNT(CASE WHEN cph.estado = 'Finalizado' THEN 1 END) AS hitos_completados
         FROM mis_clientes mc
         JOIN clientes c ON c.idcliente = mc.id_cliente
-        JOIN cliente_proceso cp ON cp.idcliente = c.idcliente
+        JOIN cliente_proceso cp ON cp.cliente_id = c.idcliente
         JOIN proceso p ON p.id = cp.id_proceso
         JOIN cliente_proceso_hito cph ON cph.cliente_proceso_id = cp.id
         GROUP BY p.id, p.nombre
@@ -120,7 +120,7 @@ class MetricasService:
         JOIN clientes c ON c.idcliente = mc.id_cliente
         JOIN cliente_proceso cp ON cp.idcliente = c.idcliente
         JOIN cliente_proceso_hito cph ON cph.cliente_proceso_id = cp.id
-        WHERE cph.fecha_inicio >= DATEADD(day, -30, GETDATE())
+        WHERE cph.fecha_limite >= DATEADD(day, -30, GETDATE())
         """
 
         sql_anterior_pendientes = MIS_CLIENTES_CTE + """
@@ -129,8 +129,8 @@ class MetricasService:
         JOIN clientes c ON c.idcliente = mc.id_cliente
         JOIN cliente_proceso cp ON cp.idcliente = c.idcliente
         JOIN cliente_proceso_hito cph ON cph.cliente_proceso_id = cp.id
-        WHERE cph.fecha_inicio >= DATEADD(day, -60, GETDATE())
-          AND cph.fecha_inicio < DATEADD(day, -30, GETDATE())
+        WHERE cph.fecha_limite >= DATEADD(day, -60, GETDATE())
+          AND cph.fecha_limite < DATEADD(day, -30, GETDATE())
         """
 
         result_actual_pend = self.db.execute(text(sql_actual_pendientes), {"email": email}).fetchone()
@@ -199,7 +199,7 @@ class MetricasService:
         sql_actual_tiempo = MIS_CLIENTES_CTE + """
         SELECT AVG(CASE
             WHEN cph.estado = 'Finalizado' THEN
-                DATEDIFF(day, cph.fecha_inicio, CAST(cph.fecha_estado AS DATE))
+                DATEDIFF(day, cph.fecha_limite, CAST(cph.fecha_estado AS DATE))
             ELSE NULL
         END) AS tiempo_actual
         FROM mis_clientes mc
@@ -213,7 +213,7 @@ class MetricasService:
         sql_anterior_tiempo = MIS_CLIENTES_CTE + """
         SELECT AVG(CASE
             WHEN cph.estado = 'Finalizado' THEN
-                DATEDIFF(day, cph.fecha_inicio, CAST(cph.fecha_estado AS DATE))
+                DATEDIFF(day, cph.fecha_limite, CAST(cph.fecha_estado AS DATE))
             ELSE NULL
         END) AS tiempo_anterior
         FROM mis_clientes mc
@@ -246,15 +246,15 @@ class MetricasService:
             cph.id AS hito_id,
             LTRIM(RTRIM(c.razsoc)) AS cliente_nombre,
             LTRIM(RTRIM(p.nombre)) AS proceso_nombre,
-            FORMAT(cph.fecha_inicio, 'yyyy-MM-dd') AS fecha_vencimiento,
-            DATEDIFF(day, cph.fecha_inicio, GETDATE()) AS dias_vencido
+            FORMAT(cph.fecha_limite, 'yyyy-MM-dd') AS fecha_vencimiento,
+            DATEDIFF(day, cph.fecha_limite, GETDATE()) AS dias_vencido
         FROM mis_clientes mc
         JOIN clientes c ON c.idcliente = mc.id_cliente
         JOIN cliente_proceso cp ON cp.idcliente = c.idcliente
         JOIN proceso p ON p.id = cp.id_proceso
         JOIN cliente_proceso_hito cph ON cph.cliente_proceso_id = cp.id
         WHERE cph.estado != 'Finalizado'
-          AND cph.fecha_inicio < GETDATE()
+          AND cph.fecha_limite < GETDATE()
         ORDER BY dias_vencido DESC
         """
 
@@ -268,8 +268,8 @@ class MetricasService:
         JOIN cliente_proceso cp ON cp.idcliente = c.idcliente
         JOIN cliente_proceso_hito cph ON cph.cliente_proceso_id = cp.id
         WHERE cph.estado != 'Finalizado'
-          AND cph.fecha_inicio < GETDATE()
-          AND cph.fecha_inicio >= DATEADD(day, -30, GETDATE())
+          AND cph.fecha_limite < GETDATE()
+          AND cph.fecha_limite >= DATEADD(day, -30, GETDATE())
         """
 
         sql_anterior_vencidos = MIS_CLIENTES_CTE + """
@@ -279,8 +279,8 @@ class MetricasService:
         JOIN cliente_proceso cp ON cp.idcliente = c.idcliente
         JOIN cliente_proceso_hito cph ON cph.cliente_proceso_id = cp.id
         WHERE cph.estado != 'Finalizado'
-          AND cph.fecha_inicio < DATEADD(day, -30, GETDATE())
-          AND cph.fecha_inicio >= DATEADD(day, -60, GETDATE())
+          AND cph.fecha_limite < DATEADD(day, -30, GETDATE())
+          AND cph.fecha_limite >= DATEADD(day, -60, GETDATE())
         """
 
         result_actual_venc = self.db.execute(text(sql_actual_vencidos), {"email": email}).fetchone()
@@ -302,15 +302,15 @@ class MetricasService:
         SELECT
             mc.id_cliente AS cliente_id,
             LTRIM(RTRIM(c.razsoc)) AS cliente_nombre,
-            FORMAT(MAX(cph.fecha_inicio), 'yyyy-MM-dd') AS ultima_actividad,
-            DATEDIFF(day, MAX(cph.fecha_inicio), GETDATE()) AS dias_inactivo
+            FORMAT(MAX(cph.fecha_limite), 'yyyy-MM-dd') AS ultima_actividad,
+            DATEDIFF(day, MAX(cph.fecha_limite), GETDATE()) AS dias_inactivo
         FROM mis_clientes mc
         JOIN clientes c ON c.idcliente = mc.id_cliente
-        LEFT JOIN cliente_proceso cp ON cp.idcliente = c.idcliente
+        LEFT JOIN cliente_proceso cp ON cp.cliente_id = c.idcliente
         LEFT JOIN cliente_proceso_hito cph ON cph.cliente_proceso_id = cp.id
         GROUP BY mc.id_cliente, c.razsoc
-        HAVING MAX(cph.fecha_inicio) IS NULL
-           OR MAX(cph.fecha_inicio) < DATEADD(day, -30, GETDATE())
+        HAVING MAX(cph.fecha_limite) IS NULL
+           OR MAX(cph.fecha_limite) < DATEADD(day, -30, GETDATE())
         ORDER BY dias_inactivo DESC
         """
 
@@ -321,26 +321,26 @@ class MetricasService:
         SELECT COUNT(DISTINCT mc.id_cliente) AS inactivos_actual
         FROM mis_clientes mc
         JOIN clientes c ON c.idcliente = mc.id_cliente
-        LEFT JOIN cliente_proceso cp ON cp.idcliente = c.idcliente
+        LEFT JOIN cliente_proceso cp ON cp.cliente_id = c.idcliente
         LEFT JOIN cliente_proceso_hito cph ON cph.cliente_proceso_id = cp.id
-        WHERE (SELECT MAX(cph2.fecha_inicio)
+        WHERE (SELECT MAX(cph2.fecha_limite)
                FROM cliente_proceso cp2
                JOIN cliente_proceso_hito cph2 ON cph2.cliente_proceso_id = cp2.id
-               WHERE cp2.idcliente = mc.id_cliente) < DATEADD(day, -30, GETDATE())
-           OR NOT EXISTS (SELECT 1 FROM cliente_proceso cp3 WHERE cp3.idcliente = mc.id_cliente)
+               WHERE cp2.cliente_id = mc.id_cliente) < DATEADD(day, -30, GETDATE())
+           OR NOT EXISTS (SELECT 1 FROM cliente_proceso cp3 WHERE cp3.cliente_id = mc.id_cliente)
         """
 
         sql_anterior_inactivos = MIS_CLIENTES_CTE + """
         SELECT COUNT(DISTINCT mc.id_cliente) AS inactivos_anterior
         FROM mis_clientes mc
         JOIN clientes c ON c.idcliente = mc.id_cliente
-        LEFT JOIN cliente_proceso cp ON cp.idcliente = c.idcliente
+        LEFT JOIN cliente_proceso cp ON cp.cliente_id = c.idcliente
         LEFT JOIN cliente_proceso_hito cph ON cph.cliente_proceso_id = cp.id
-        WHERE (SELECT MAX(cph2.fecha_inicio)
+        WHERE (SELECT MAX(cph2.fecha_limite)
                FROM cliente_proceso cp2
                JOIN cliente_proceso_hito cph2 ON cph2.cliente_proceso_id = cp2.id
-               WHERE cp2.idcliente = mc.id_cliente) < DATEADD(day, -60, GETDATE())
-           OR NOT EXISTS (SELECT 1 FROM cliente_proceso cp3 WHERE cp3.idcliente = mc.id_cliente)
+               WHERE cp2.cliente_id = mc.id_cliente) < DATEADD(day, -60, GETDATE())
+           OR NOT EXISTS (SELECT 1 FROM cliente_proceso cp3 WHERE cp3.cliente_id = mc.id_cliente)
         """
 
         result_actual_inact = self.db.execute(text(sql_actual_inactivos), {"email": email}).fetchone()
@@ -360,16 +360,16 @@ class MetricasService:
         """Obtiene volumen mensual de hitos"""
         sql = MIS_CLIENTES_CTE + """
         SELECT
-            FORMAT(cph.fecha_inicio, 'yyyy-MM') AS mes,
+            FORMAT(cph.fecha_limite, 'yyyy-MM') AS mes,
             COUNT(cph.id) AS hitos_creados,
             COUNT(CASE WHEN cph.estado = 'Finalizado' THEN 1 END) AS hitos_completados
         FROM mis_clientes mc
         JOIN clientes c ON c.idcliente = mc.id_cliente
         JOIN cliente_proceso cp ON cp.idcliente = c.idcliente
         JOIN cliente_proceso_hito cph ON cph.cliente_proceso_id = cp.id
-        WHERE cph.fecha_inicio >= DATEADD(month, -6, GETDATE())
-        GROUP BY FORMAT(cph.fecha_inicio, 'yyyy-MM')
-        ORDER BY FORMAT(cph.fecha_inicio, 'yyyy-MM')
+        WHERE cph.fecha_limite >= DATEADD(month, -6, GETDATE())
+        GROUP BY FORMAT(cph.fecha_limite, 'yyyy-MM')
+        ORDER BY FORMAT(cph.fecha_limite, 'yyyy-MM')
         """
 
         result = self.db.execute(text(sql), {"email": email}).fetchall()
@@ -407,7 +407,7 @@ class MetricasService:
         JOIN clientes c ON c.idcliente = mc.id_cliente
         JOIN cliente_proceso cp ON cp.idcliente = c.idcliente
         JOIN cliente_proceso_hito cph ON cph.cliente_proceso_id = cp.id
-        WHERE cph.fecha_inicio >= DATEADD(day, -30, GETDATE())
+        WHERE cph.fecha_limite >= DATEADD(day, -30, GETDATE())
         """
 
         sql_anterior_volumen = MIS_CLIENTES_CTE + """
@@ -416,8 +416,8 @@ class MetricasService:
         JOIN clientes c ON c.idcliente = mc.id_cliente
         JOIN cliente_proceso cp ON cp.idcliente = c.idcliente
         JOIN cliente_proceso_hito cph ON cph.cliente_proceso_id = cp.id
-        WHERE cph.fecha_inicio >= DATEADD(day, -60, GETDATE())
-          AND cph.fecha_inicio < DATEADD(day, -30, GETDATE())
+        WHERE cph.fecha_limite >= DATEADD(day, -60, GETDATE())
+          AND cph.fecha_limite < DATEADD(day, -30, GETDATE())
         """
 
         result_actual_vol = self.db.execute(text(sql_actual_volumen), {"email": email}).fetchone()

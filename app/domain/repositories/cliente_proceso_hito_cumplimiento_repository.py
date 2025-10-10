@@ -29,5 +29,6 @@ class ClienteProcesoHitoCumplimientoRepository(ABC):
         pass
 
     @abstractmethod
-    def obtener_historial_por_cliente_id(self, cliente_id: str):
+    def obtener_historial_por_cliente_id(self, cliente_id: str, proceso_id: int = None, hito_id: int = None,
+                                        fecha_desde: str = None, fecha_hasta: str = None):
         pass

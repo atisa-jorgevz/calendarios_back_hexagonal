@@ -13,5 +13,6 @@ class ClienteProcesoHitoCumplimientoModel(Base):
     hora = Column(Time, nullable=False)
     observacion = Column(String(255), nullable=True)
     usuario = Column(String(255), nullable=False)
+    fecha_creacion = Column(DateTime, nullable=True)
 
     cliente_proceso_hito = relationship("ClienteProcesoHitoModel", backref="cumplimientos")
