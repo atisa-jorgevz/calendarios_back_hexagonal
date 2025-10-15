@@ -11,6 +11,9 @@ from app.interfaces.api import auth_routes
 # Guard que protege tus endpoints con JWT / API-Key
 from app.interfaces.api.security.auth import get_current_user
 
+# WebSocket integration
+from app.interfaces.api.websocket_integration import configure_websockets
+
 # Importa todos tus routers de la versión 1
 from app.interfaces.api.v1.endpoints import (
     plantilla,
@@ -31,7 +34,8 @@ from app.interfaces.api.v1.endpoints import (
     documento_metadato,
     subdepar,
     metricas,
-    auditoria_calendarios
+    auditoria_calendarios,
+    admin_hitos_departamento
 )
 
 
@@ -86,7 +90,10 @@ app.include_router(metadatos_area.router,       dependencies=[Depends(get_curren
 app.include_router(subdepar.router,             dependencies=[Depends(get_current_user)])
 app.include_router(metricas.router,             dependencies=[Depends(get_current_user)])
 app.include_router(auditoria_calendarios.router, dependencies=[Depends(get_current_user)])
+app.include_router(admin_hitos_departamento.router, dependencies=[Depends(get_current_user)])
 
+
+configure_websockets(app)
 
 # --- Health check opcional ---
 @app.get("/health", tags=["Status"])
