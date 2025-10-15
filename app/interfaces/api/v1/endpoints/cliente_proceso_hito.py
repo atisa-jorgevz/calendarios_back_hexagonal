@@ -1,4 +1,4 @@
-from fastapi import APIRouter, Depends, HTTPException, Body, Path
+from fastapi import APIRouter, Depends, HTTPException, Body, Path, Query
 from sqlalchemy.orm import Session
 from app.infrastructure.db.database import SessionLocal
 from app.infrastructure.db.repositories.cliente_proceso_hito_repository_sql import ClienteProcesoHitoRepositorySQL
@@ -64,16 +64,35 @@ def actualizar(
     id: int = Path(..., description="ID de la relación a actualizar"),
     data: dict = Body(..., example={
         "estado": "completado",
-        "fecha_inicio": "2023-01-01",
-        "fecha_fin": "2023-01-05",
-        "fecha_estado": "2023-01-05"
+        "fecha_estado": "2023-01-05T10:30:00",
+        "habilitado": True
     }),
     repo = Depends(get_repo)
 ):
-    hito_actualizado = repo.actualizar(id, data)
-    if not hito_actualizado:
-        raise HTTPException(status_code=404, detail="No encontrado")
-    return hito_actualizado
+    try:
+        # Validar que el registro existe
+        hito_existente = repo.obtener_por_id(id)
+        if not hito_existente:
+            raise HTTPException(status_code=404, detail="Registro no encontrado")
+
+        # Realizar la actualización
+        hito_actualizado = repo.actualizar(id, data)
+        if not hito_actualizado:
+            raise HTTPException(status_code=500, detail="Error al actualizar el registro")
+
+        return {
+            "mensaje": "Registro actualizado exitosamente",
+            "id": hito_actualizado.id,
+            "datos_actualizados": {
+                "estado": hito_actualizado.estado,
+                "fecha_estado": hito_actualizado.fecha_estado.isoformat() if hito_actualizado.fecha_estado else None,
+                "habilitado": hito_actualizado.habilitado
+            }
+        }
+    except HTTPException:
+        raise
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Error interno: {str(e)}")
 
 @router.delete("/{id}", summary="Eliminar relación",
     description="Elimina una relación cliente-proceso-hito existente por su ID.")
@@ -96,3 +115,29 @@ def get_hitos_por_proceso(
     if not hitos:
         raise HTTPException(status_code=404, detail="No se encontraron hitos para este proceso")
     return hitos
+
+@router.get("/habilitados", summary="Listar hitos habilitados",
+    description="Devuelve solo los hitos que están habilitados (habilitado=True).")
+def listar_habilitados(repo = Depends(get_repo)):
+    return repo.listar_habilitados()
+
+@router.get("/cliente-proceso/{id_cliente_proceso}/habilitados", summary="Listar hitos habilitados de un proceso de cliente",
+    description="Devuelve solo los hitos habilitados asociados a un proceso de cliente específico.")
+def get_hitos_habilitados_por_proceso(
+    id_cliente_proceso: int = Path(..., description="ID del proceso de cliente"),
+    repo = Depends(get_repo)
+):
+    hitos = repo.obtener_habilitados_por_cliente_proceso_id(id_cliente_proceso)
+    if not hitos:
+        raise HTTPException(status_code=404, detail="No se encontraron hitos habilitados para este proceso")
+    return hitos
+
+@router.put("/hito/{hito_id}/deshabilitar-desde", summary="Deshabilitar hitos de un hito desde una fecha",
+    description="Deshabilita (habilitado=False) todos los ClienteProcesoHito de un hito_id a partir de una fecha (inclusive)")
+def deshabilitar_hitos_por_hito_desde(
+    hito_id: int = Path(..., description="ID del hito (maestro)"),
+    fecha_desde: str = Query(..., description="Fecha ISO (YYYY-MM-DD) desde la cual deshabilitar los hitos"),
+    repo = Depends(get_repo)
+):
+    afectados = repo.deshabilitar_desde_fecha_por_hito(hito_id, fecha_desde)
+    return {"mensaje": "Hitos deshabilitados por hito", "afectados": afectados}

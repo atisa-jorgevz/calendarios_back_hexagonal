@@ -67,6 +67,32 @@ def get_por_cliente(cliente_id: str,
         "total": total
     }
 
+@router.get("/habilitados", summary="Listar procesos de cliente habilitados",
+    description="Devuelve solo los procesos de cliente que están habilitados (habilitado=True).")
+def listar_habilitados(repo = Depends(get_repo)):
+    return repo.listar_habilitados()
+
+@router.get("/cliente/{cliente_id}/habilitados", summary="Listar procesos de cliente habilitados por cliente",
+    description="Devuelve solo los procesos de cliente habilitados de un cliente específico.")
+def get_habilitados_por_cliente(
+    cliente_id: str,
+    page: Optional[int] = Query(None, ge=1, description="Página actual"),
+    limit: Optional[int] = Query(None, ge=1, le=100, description="Cantidad de resultados por página"),
+    repo = Depends(get_repo)
+):
+    cliente_procesos = repo.listar_habilitados_por_cliente(cliente_id)
+    total = len(cliente_procesos)
+
+    if page is not None and limit is not None:
+        start = (page - 1) * limit
+        end = start + limit
+        cliente_procesos = cliente_procesos[start:end]
+
+    return {
+        "clienteProcesos": cliente_procesos,
+        "total": total
+    }
+
 @router.delete("/{id}")
 def delete(id: int, repo = Depends(get_repo)):
     ok = repo.eliminar(id)

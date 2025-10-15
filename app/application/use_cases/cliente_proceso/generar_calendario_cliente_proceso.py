@@ -27,24 +27,12 @@ def generar_calendario_cliente_proceso(
             dia_hito = hito_data.fecha_limite.day if hito_data.fecha_limite else 1
             _, last_day = monthrange(base_year, base_month)
             fecha_limite_instancia = date(base_year, base_month, min(dia_hito, last_day))
-            # Ajustar fin de semana manteniendo SIEMPRE el mismo mes:
-            # - Si es día 1 y cae en fin de semana: mover al lunes del mismo mes (1->2 si domingo; 1->3 si sábado)
-            # - En otros casos: Sábado -> viernes (día - 1)
-            #                   Domingo -> lunes (día + 1) si cabe en el mes; si no, viernes (día - 2)
+            # Ajustar fin de semana: si cae en sábado o domingo, mover al viernes
             weekday = fecha_limite_instancia.weekday()  # 0=Lunes ... 5=Sábado, 6=Domingo
-            if weekday == 5:  # Sábado
-                if fecha_limite_instancia.day == 1:
-                    # 1 sábado -> lunes 3
-                    fecha_limite_instancia = fecha_limite_instancia + timedelta(days=2)
-                else:
-                    fecha_limite_instancia = fecha_limite_instancia - timedelta(days=1)
-            elif weekday == 6:  # Domingo
-                if fecha_limite_instancia.day == 1:
-                    # 1 domingo -> lunes 2 (mismo mes)
-                    fecha_limite_instancia = fecha_limite_instancia + timedelta(days=1)
-                else:
-                    # Resto de domingos -> viernes del mismo mes
-                    fecha_limite_instancia = fecha_limite_instancia - timedelta(days=2)
+            if weekday == 5:  # Sábado -> viernes (día - 1)
+                fecha_limite_instancia = fecha_limite_instancia - timedelta(days=1)
+            elif weekday == 6:  # Domingo -> viernes (día - 2)
+                fecha_limite_instancia = fecha_limite_instancia - timedelta(days=2)
 
             nuevo_hito = ClienteProcesoHito(
                 id=None,

@@ -1,6 +1,6 @@
 # app/infrastructure/db/models/cliente_proceso_hito_model.py
 
-from sqlalchemy import Column, Integer, String, DateTime, ForeignKey,Date, Time
+from sqlalchemy import Column, Integer, String, DateTime, ForeignKey, Date, Time, Boolean
 from sqlalchemy.orm import relationship
 from app.infrastructure.db.database import Base
 
@@ -15,6 +15,7 @@ class ClienteProcesoHitoModel(Base):
     fecha_limite = Column(Date, nullable=True)
     hora_limite = Column(Time, nullable=True)
     tipo = Column(String(255), nullable=False)
+    habilitado = Column(Boolean, nullable=False, default=True)
 
     cliente_proceso = relationship("ClienteProcesoModel", backref="hitos_cliente")
     hito = relationship("ProcesoHitoMaestroModel",

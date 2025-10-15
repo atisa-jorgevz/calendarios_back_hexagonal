@@ -30,3 +30,14 @@ class ClienteProcesoRepositorySQL(ClienteProcesoRepository):
 
     def listar_por_cliente(self, cliente_id: str):
         return self.session.query(ClienteProcesoModel).filter_by(cliente_id=cliente_id).all()
+
+    def listar_habilitados(self):
+        """Lista solo los procesos de cliente habilitados (habilitado=True)"""
+        return self.session.query(ClienteProcesoModel).filter_by(habilitado=True).all()
+
+    def listar_habilitados_por_cliente(self, cliente_id: str):
+        """Lista solo los procesos de cliente habilitados de un cliente específico"""
+        return self.session.query(ClienteProcesoModel).filter_by(
+            cliente_id=cliente_id,
+            habilitado=True
+        ).all()

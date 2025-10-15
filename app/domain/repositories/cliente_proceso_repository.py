@@ -16,6 +16,14 @@ class ClienteProcesoRepository(ABC):
         pass
 
     @abstractmethod
+    def listar_habilitados(self):
+        pass
+
+    @abstractmethod
+    def listar_habilitados_por_cliente(self, cliente_id: str):
+        pass
+
+    @abstractmethod
     def obtener_por_id(self, id: int):
         pass
 

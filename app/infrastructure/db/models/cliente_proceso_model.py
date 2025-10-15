@@ -1,4 +1,4 @@
-from sqlalchemy import Column, Integer, String, Date, ForeignKey
+from sqlalchemy import Column, Integer, String, Date, ForeignKey, Boolean
 from sqlalchemy.orm import relationship
 from app.infrastructure.db.database import Base
 
@@ -13,6 +13,7 @@ class ClienteProcesoModel(Base):
     mes = Column(Integer, nullable=True)
     anio = Column(Integer, nullable=True)
     anterior_id = Column(Integer, ForeignKey("cliente_proceso.id"), nullable=True)
+    habilitado = Column(Boolean, nullable=False, default=True)
 
     # Relaciones
     proceso = relationship("ProcesoModel", backref="cliente_procesos")

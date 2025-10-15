@@ -24,6 +24,14 @@ class ClienteProcesoHitoRepository(ABC):
         pass
 
     @abstractmethod
+    def listar_habilitados(self):
+        pass
+
+    @abstractmethod
+    def obtener_habilitados_por_cliente_proceso_id(self, cliente_proceso_id: int):
+        pass
+
+    @abstractmethod
     def actualizar(self, id: int, data: dict):
         pass
 
@@ -33,4 +41,9 @@ class ClienteProcesoHitoRepository(ABC):
 
     @abstractmethod
     def eliminar_por_hito_id(self, hito_id: int):
+        pass
+
+    @abstractmethod
+    def deshabilitar_desde_fecha_por_hito(self, hito_id: int, fecha_desde):
+        """Deshabilita (habilitado=False) todos los ClienteProcesoHito de un hito concreto con fecha_limite >= fecha_desde. Devuelve cantidad afectada."""
         pass

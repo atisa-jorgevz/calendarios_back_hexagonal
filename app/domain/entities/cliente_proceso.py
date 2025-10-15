@@ -1,5 +1,5 @@
 class ClienteProceso:
-    def __init__(self, id=None, cliente_id=None, proceso_id=None, fecha_inicio=None, fecha_fin=None, mes=None, anio=None, anterior_id=None):
+    def __init__(self, id=None, cliente_id=None, proceso_id=None, fecha_inicio=None, fecha_fin=None, mes=None, anio=None, anterior_id=None, habilitado=True):
         self.id = id
         self.cliente_id = cliente_id
         self.proceso_id = proceso_id
@@ -8,3 +8,4 @@ class ClienteProceso:
         self.mes = mes
         self.anio = anio
         self.anterior_id = anterior_id
+        self.habilitado = habilitado
