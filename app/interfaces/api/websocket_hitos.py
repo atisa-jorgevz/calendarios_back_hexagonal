@@ -307,3 +307,26 @@ async def broadcast_hito_update(cod_subdepar: str, hito_data: dict):
     
     await manager.broadcast(hito_data, cod_subdepar)
     logger.info(f"Broadcast hito update to department {cod_subdepar}")
+
+
+async def broadcast_departament_event(cod_subdepar: str, tipo: str, data: Optional[dict] = None):
+    """
+    Generic helper to broadcast an event to all clients in a subdepartment.
+
+    - Ensures consistent payload with 'tipo' and 'timestamp'.
+    - Does not change existing logic or message handling for specific event types.
+
+    Parameters:
+    - cod_subdepar: Target subdepartment code (room/channel)
+    - tipo: Event type string (e.g., 'proceso_actualizado', 'hito_actualizado')
+    - data: Optional dict payload to include with the event
+    """
+    payload: Dict[str, Any] = {}
+    if isinstance(data, dict):
+        payload.update(data)
+    # Ensure standard fields
+    payload.setdefault("tipo", tipo)
+    payload.setdefault("timestamp", datetime.now().isoformat())
+
+    await manager.broadcast(payload, cod_subdepar)
+    logger.info(f"Broadcast event '{tipo}' to department {cod_subdepar}")
