@@ -47,3 +47,8 @@ class ClienteProcesoHitoRepository(ABC):
     def deshabilitar_desde_fecha_por_hito(self, hito_id: int, fecha_desde):
         """Deshabilita (habilitado=False) todos los ClienteProcesoHito de un hito concreto con fecha_limite >= fecha_desde. Devuelve cantidad afectada."""
         pass
+
+    @abstractmethod
+    def sincronizar_estado_cliente_proceso(self, cliente_proceso_id: int):
+        """Verifica y actualiza el estado de habilitado de un cliente_proceso basado en sus hitos"""
+        pass

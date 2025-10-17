@@ -51,3 +51,14 @@ def delete(
     if not resultado:
         raise HTTPException(status_code=404, detail="relacion no encontrada")
     return {"mensaje": "relacion eliminada"}
+
+@router.delete("/hito/{hito_id}", summary="Eliminar relaciones por hito_id",
+    description="Elimina todas las relaciones proceso-hito asociadas a un hito específico.")
+def delete_por_hito(
+    hito_id: int = Path(..., description="ID del hito cuyas relaciones se eliminarán"),
+    repo = Depends(get_repo)
+):
+    eliminados = repo.eliminar_por_hito_id(hito_id)
+    if eliminados == 0:
+        raise HTTPException(status_code=404, detail="No se encontraron relaciones para el hito indicado")
+    return {"mensaje": "relaciones eliminadas", "eliminados": eliminados}

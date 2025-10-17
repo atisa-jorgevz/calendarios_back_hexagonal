@@ -133,11 +133,49 @@ def get_hitos_habilitados_por_proceso(
     return hitos
 
 @router.put("/hito/{hito_id}/deshabilitar-desde", summary="Deshabilitar hitos de un hito desde una fecha",
-    description="Deshabilita (habilitado=False) todos los ClienteProcesoHito de un hito_id a partir de una fecha (inclusive)")
+    description="Deshabilita (habilitado=False) todos los ClienteProcesoHito de un hito_id a partir de una fecha (inclusive). Si todos los hitos de un cliente_proceso quedan deshabilitados, también deshabilita el cliente_proceso.")
 def deshabilitar_hitos_por_hito_desde(
     hito_id: int = Path(..., description="ID del hito (maestro)"),
     fecha_desde: str = Query(..., description="Fecha ISO (YYYY-MM-DD) desde la cual deshabilitar los hitos"),
     repo = Depends(get_repo)
 ):
-    afectados = repo.deshabilitar_desde_fecha_por_hito(hito_id, fecha_desde)
-    return {"mensaje": "Hitos deshabilitados por hito", "afectados": afectados}
+    try:
+        resultado = repo.deshabilitar_desde_fecha_por_hito(hito_id, fecha_desde)
+        return {
+            "mensaje": "Hitos deshabilitados exitosamente",
+            "hitos_afectados": resultado['hitos_afectados'],
+            "cliente_procesos_deshabilitados": resultado['cliente_procesos_deshabilitados'],
+            "fecha_desde": fecha_desde,
+            "resumen": f"Se deshabilitaron {resultado['hitos_afectados']} hitos y {len(resultado['cliente_procesos_deshabilitados'])} procesos de cliente"
+        }
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Error al deshabilitar hitos: {str(e)}")
+
+@router.put("/sincronizar-cliente-proceso/{cliente_proceso_id}", summary="Sincronizar estado de cliente_proceso",
+    description="Verifica y actualiza el estado de habilitado de un cliente_proceso basado en sus hitos habilitados.")
+def sincronizar_cliente_proceso(
+    cliente_proceso_id: int = Path(..., description="ID del cliente_proceso a sincronizar"),
+    repo = Depends(get_repo)
+):
+    try:
+        resultado = repo.sincronizar_estado_cliente_proceso(cliente_proceso_id)
+
+        if resultado['actualizado']:
+            return {
+                "mensaje": "Estado de cliente_proceso actualizado",
+                "cliente_proceso_id": cliente_proceso_id,
+                "actualizado": True,
+                "estado_anterior": resultado['estado_anterior'],
+                "estado_nuevo": resultado['estado_nuevo'],
+                "hitos_habilitados": resultado['hitos_habilitados']
+            }
+        else:
+            return {
+                "mensaje": "Estado de cliente_proceso ya estaba correcto",
+                "cliente_proceso_id": cliente_proceso_id,
+                "actualizado": False,
+                "estado_actual": resultado['estado_actual'],
+                "hitos_habilitados": resultado['hitos_habilitados']
+            }
+    except Exception as e:
+        raise HTTPException(status_code=500, detail=f"Error al sincronizar cliente_proceso: {str(e)}")

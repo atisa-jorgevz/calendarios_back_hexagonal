@@ -79,7 +79,7 @@ class ClienteProcesoHitoCumplimientoRepositorySQL(ClienteProcesoHitoCumplimiento
 
         query = text("""
             SELECT cpc.id, cpc.fecha, cpc.hora, cpc.usuario, cpc.observacion, cpc.fecha_creacion,
-                   p.id as proceso_id, p.nombre AS proceso, h.id as hito_id, h.nombre AS hito, cph.fecha_limite
+                   p.id as proceso_id, p.nombre AS proceso, h.id as hito_id, h.nombre AS hito, cph.fecha_limite, cph.hora_limite
             FROM cliente_proceso_hito_cumplimiento cpc
             JOIN cliente_proceso_hito cph ON cph.id = cpc.cliente_proceso_hito_id
             JOIN cliente_proceso cp ON cp.id = cph.cliente_proceso_id

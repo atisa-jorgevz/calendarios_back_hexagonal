@@ -13,7 +13,7 @@ from app.infrastructure.db.database import get_db
 
 router = APIRouter()
 
-def get_db():    
+def get_db():
     db = SessionLocal()
     try:
         yield db
@@ -34,7 +34,7 @@ def listar_clientes(db: Session = Depends(get_db)):
 def crear_cliente(
     data: CrearClienteAPIRequest,
     db: Session = Depends(get_db)
-):    
+):
     # Si se proporciona una contraseña, la usamos directamente (sin validar)
     if data.password:
         # Usar la contraseña proporcionada (ya validada en frontend)
@@ -67,9 +67,9 @@ def crear_cliente(
     description="Cambia el estado activo de un cliente API existente.")
 def cambiar_estado(
     data: CambiarEstadoClienteRequest,
-    id: int = Path(..., description="ID del cliente API"),    
+    id: int = Path(..., description="ID del cliente API"),
     db: Session = Depends(get_db)
-    
+
 ):
     cliente = db.query(ApiClienteModel).filter_by(id=id).first()
     if not cliente:
@@ -104,12 +104,12 @@ def validar_password(
     Valida una contraseña según los criterios de seguridad:
     - Mínimo 8 caracteres
     - Al menos una letra minúscula
-    - Al menos una letra mayúscula  
+    - Al menos una letra mayúscula
     - Al menos un número
     - Al menos un carácter especial
     """
     validacion = validar_password_criterios(data.password)
-    
+
     return {
         "valida": validacion["valida"],
         "mensaje": "Contraseña válida" if validacion["valida"] else "Contraseña no cumple con los criterios",

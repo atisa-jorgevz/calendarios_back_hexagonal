@@ -265,7 +265,8 @@ def obtener_historial_por_cliente(
                 "proceso": row.proceso,
                 "hito_id": row.hito_id,
                 "hito": row.hito,
-                "fecha_limite": row.fecha_limite.isoformat() if row.fecha_limite else None
+                "fecha_limite": row.fecha_limite.isoformat() if row.fecha_limite else None,
+                "hora_limite": str(row.hora_limite) if row.hora_limite else None
             })
 
         total = len(historial)

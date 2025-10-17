@@ -13,6 +13,10 @@ class HitoRepository(ABC):
         pass
 
     @abstractmethod
+    def listar_habilitados(self):
+        pass
+
+    @abstractmethod
     def obtener_por_id(self, id: int):
         pass
 
@@ -23,7 +27,7 @@ class HitoRepository(ABC):
     @abstractmethod
     def eliminar(self, id: int):
         pass
-    
+
     @abstractmethod
     def listar_hitos_cliente_por_empleado(self,
         email: str,

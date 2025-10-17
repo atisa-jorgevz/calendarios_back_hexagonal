@@ -33,6 +33,10 @@ class ProcesoRepositorySQL(ProcesoRepository):
     def listar(self):
         return self.session.query(ProcesoModel).all()
 
+    def listar_habilitados(self):
+        """Lista solo los procesos habilitados (habilitado=True)"""
+        return self.session.query(ProcesoModel).filter_by(habilitado=True).all()
+
     def obtener_por_id(self, id: int):
         return self.session.query(ProcesoModel).filter_by(id=id).first()
 

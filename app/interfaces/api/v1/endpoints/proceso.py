@@ -34,6 +34,11 @@ def crear(
 ):
     return crear_proceso(data, repo)
 
+@router.get("/habilitados", summary="Listar procesos habilitados",
+    description="Devuelve solo los procesos que están habilitados (habilitado=True).")
+def listar_habilitados(repo = Depends(get_repo)):
+    return repo.listar_habilitados()
+
 @router.get("/", summary="Listar todos los procesos",
     description="Devuelve todos los procesos registrados en el sistema.")
 def listar(

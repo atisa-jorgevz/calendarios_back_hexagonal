@@ -74,6 +74,11 @@ def obtener_hitos_por_empleado(
         anio=anio
     )
 
+@router.get("/habilitados", summary="Listar hitos habilitados",
+    description="Devuelve solo los hitos que están habilitados (habilitado=True).")
+def listar_habilitados(repo = Depends(get_repo)):
+    return repo.listar_habilitados()
+
 @router.get("/", summary="Listar todos los hitos",
     description="Devuelve todos los hitos definidos en el sistema.")
 def listar(
