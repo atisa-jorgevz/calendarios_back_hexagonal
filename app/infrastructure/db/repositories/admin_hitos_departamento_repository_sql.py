@@ -56,8 +56,8 @@ class AdminHitosDepartamentoRepositorySQL(AdminHitosDepartamentoRepository):
             JOIN [ATISA_Input].dbo.proceso p ON p.id = cp.proceso_id
             JOIN [ATISA_Input].dbo.proceso_hito_maestro phm ON phm.hito_id = cph.hito_id AND phm.proceso_id = p.id
             JOIN [ATISA_Input].dbo.hito h ON h.id = phm.hito_id
-            JOIN [ATISA_Input].dbo.clienteSubDepar csd ON csd.id = cp.cliente_id
-            JOIN [ATISA_Input].dbo.clientes c ON c.idcliente = csd.id
+            JOIN [ATISA_Input].dbo.clientes c ON c.idcliente = cp.cliente_id
+            JOIN [ATISA_Input].dbo.clienteSubDepar csd ON csd.cif = c.cif
             JOIN [ATISA_Input].dbo.SubDePar sd ON sd.codSubDePar = csd.codSubDePar
             WHERE 1=1 AND cph.habilitado = 1 {where_extra}
             ORDER BY sd.codSubDePar, p.id, h.id
