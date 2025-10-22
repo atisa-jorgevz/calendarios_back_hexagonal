@@ -27,16 +27,30 @@ def get_repo(db: Session = Depends(get_db)):
     "/departamentos-hitos",
     summary="Listar hitos por departamentos",
     description=(
-        "Devuelve los hitos de todos los departamentos (subdepartamentos), "
-        "incluyendo proceso, cliente (id, nombre, cif), estado, fecha_limite, hora_limite, tipo y habilitado (0/1)."
+        "Dos modos: (1) Anidado por departamento/proceso (por defecto). "
+        "(2) Plano y paginado cuando flat=1, devolviendo items + quedan + next_cursor. "
+        "Incluye proceso, cliente (id, nombre, cif), estado, fecha_limite, hora_limite, tipo y habilitado (0/1)."
     ),
 )
 def listar_hitos_departamentos(
     mes: Optional[int] = Query(None, ge=1, le=12, description="Mes (1-12) de fecha límite"),
     anio: Optional[int] = Query(None, ge=2000, le=2100, description="Año de fecha límite"),
     cod_subdepar: Optional[str] = Query(None, description="Filtrar por código de subdepartamento"),
+    flat: bool = Query(False, description="Si es 1/true devuelve resultado plano y paginado"),
+    limit: Optional[int] = Query(1000, ge=1, le=5000, description="Tamaño de página en modo flat"),
+    cursor: Optional[int] = Query(None, ge=0, description="Cursor (cliente_proceso_hito_id) para paginación flat"),
     repo = Depends(get_repo),
 ):
+    if flat:
+        # Modo plano y paginado (keyset pagination por cph.id)
+        return repo.listar_hitos_departamentos_flat(
+            mes=mes,
+            anio=anio,
+            cod_subdepar=cod_subdepar,
+            limit=limit or 1000,
+            cursor=cursor,
+        )
+    # Modo anidado original (sin paginación)
     return repo.listar_hitos_departamentos(mes=mes, anio=anio, cod_subdepar=cod_subdepar)
 
 

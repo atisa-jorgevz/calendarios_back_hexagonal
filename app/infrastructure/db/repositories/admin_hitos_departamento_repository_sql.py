@@ -115,6 +115,122 @@ class AdminHitosDepartamentoRepositorySQL(AdminHitosDepartamentoRepository):
 
         return salida
 
+    def listar_hitos_departamentos_flat(
+        self,
+        mes: Optional[int] = None,
+        anio: Optional[int] = None,
+        cod_subdepar: Optional[str] = None,
+        limit: int = 1000,
+        cursor: Optional[int] = None,
+    ) -> Dict[str, Any]:
+        """
+        Lista los hitos en formato plano con paginación por cursor (keyset pagination).
+
+        - cursor: cliente_proceso_hito.id a partir del cual continuar (exclusivo)
+        - limit: número máximo de elementos a devolver
+
+        Devuelve un dict con:
+          - items: lista de filas planas
+          - quedan: número de elementos restantes después de esta página
+          - next_cursor: id del último elemento de la página (para la siguiente llamada)
+        """
+        # Sanitizar y acotar límite
+        lim = max(1, min(int(limit or 1000), 5000))
+        lim_plus = lim + 1  # para detectar si hay más elementos
+
+        filtros = ["cph.habilitado = 1"]
+        params: Dict[str, Any] = {}
+
+        if mes is not None:
+            filtros.append("MONTH(cph.fecha_limite) = :mes")
+            params["mes"] = mes
+        if anio is not None:
+            filtros.append("YEAR(cph.fecha_limite) = :anio")
+            params["anio"] = anio
+        if cod_subdepar:
+            filtros.append("sd.codSubDePar = :cod_subdepar")
+            params["cod_subdepar"] = cod_subdepar
+        if cursor is not None:
+            filtros.append("cph.id > :cursor")
+            params["cursor"] = cursor
+
+        where_clause = " AND ".join(["1=1"] + filtros)
+
+        # Selección plana. Nota: mantenemos 'tipo' desde cph para ser consistentes con el listado actual.
+        sql = f"""
+            SELECT TOP ({lim_plus})
+                cph.id                  AS cliente_proceso_hito_id,
+                cph.cliente_proceso_id  AS cliente_proceso_id,
+                cph.estado              AS estado,
+                COALESCE(cph.fecha_limite, h.fecha_limite) AS fecha_limite,
+                COALESCE(cph.hora_limite, h.hora_limite)   AS hora_limite,
+                cph.habilitado          AS habilitado,
+                cph.tipo                AS tipo,
+                h.id                    AS hito_id,
+                h.nombre                AS hito_nombre,
+                p.id                    AS proceso_id,
+                p.nombre                AS proceso_nombre,
+                c.idcliente             AS cliente_id,
+                c.razsoc                AS cliente_nombre,
+                c.cif                   AS cliente_cif,
+                sd.codSubDePar          AS codigo_subdepar,
+                sd.nombre               AS nombre_subdepar
+            FROM [ATISA_Input].dbo.cliente_proceso_hito cph
+            JOIN [ATISA_Input].dbo.cliente_proceso cp ON cp.id = cph.cliente_proceso_id
+            JOIN [ATISA_Input].dbo.proceso p ON p.id = cp.proceso_id
+            JOIN [ATISA_Input].dbo.proceso_hito_maestro phm ON phm.hito_id = cph.hito_id AND phm.proceso_id = p.id
+            JOIN [ATISA_Input].dbo.hito h ON h.id = phm.hito_id
+            JOIN [ATISA_Input].dbo.clientes c ON c.idcliente = cp.cliente_id
+            JOIN [ATISA_Input].dbo.clienteSubDepar csd ON csd.cif = c.cif
+            JOIN [ATISA_Input].dbo.SubDePar sd ON sd.codSubDePar = csd.codSubDePar
+            WHERE {where_clause}
+            ORDER BY cph.id ASC
+        """
+
+        rows = self.session.execute(text(sql), params).mappings().all()
+
+        has_more = len(rows) > lim
+        items_rows = rows[:lim]
+
+        items = [dict(r) for r in items_rows]
+
+        next_cursor: Optional[int] = None
+        quedan = 0
+        if items:
+            last_id = items[-1]["cliente_proceso_hito_id"]
+            next_cursor = last_id if has_more else None
+
+            if has_more:
+                # Calcular cuántos quedarían tras el último id de esta página
+                filtros_restantes = filtros.copy()
+                # Reemplazamos/añadimos condición por last_id (no por cursor inicial)
+                filtros_restantes = [f for f in filtros_restantes if not f.startswith("cph.id > ")]
+                filtros_restantes.append("cph.id > :last_id")
+                where_rest = " AND ".join(["1=1"] + filtros_restantes)
+                params_rest = params.copy()
+                params_rest["last_id"] = last_id
+
+                sql_count = f"""
+                    SELECT COUNT(*) AS cnt
+                    FROM [ATISA_Input].dbo.cliente_proceso_hito cph
+                    JOIN [ATISA_Input].dbo.cliente_proceso cp ON cp.id = cph.cliente_proceso_id
+                    JOIN [ATISA_Input].dbo.proceso p ON p.id = cp.proceso_id
+                    JOIN [ATISA_Input].dbo.proceso_hito_maestro phm ON phm.hito_id = cph.hito_id AND phm.proceso_id = p.id
+                    JOIN [ATISA_Input].dbo.hito h ON h.id = phm.hito_id
+                    JOIN [ATISA_Input].dbo.clientes c ON c.idcliente = cp.cliente_id
+                    JOIN [ATISA_Input].dbo.clienteSubDepar csd ON csd.cif = c.cif
+                    JOIN [ATISA_Input].dbo.SubDePar sd ON sd.codSubDePar = csd.codSubDePar
+                    WHERE {where_rest}
+                """
+                row_cnt = self.session.execute(text(sql_count), params_rest).mappings().first()
+                quedan = int(row_cnt["cnt"]) if row_cnt and row_cnt["cnt"] is not None else 0
+
+        return {
+            "items": items,
+            "quedan": quedan,
+            "next_cursor": next_cursor,
+        }
+
     def actualizar_hito_departamento(self, cliente_proceso_hito_id: int, data: Dict[str, Any]) -> Dict[str, Any] | None:
         """
         Actualiza un registro de cliente_proceso_hito por ID.
